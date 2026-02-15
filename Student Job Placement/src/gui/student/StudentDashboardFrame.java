@@ -57,12 +57,59 @@ public class StudentDashboardFrame extends BaseFrame {
         card.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
         card.setPreferredSize(new Dimension(180, 110));
 
-        card.addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        text + " page not implemented yet.")
-        );
+        card.addActionListener(e -> handleNavigation(text));
 
         return card;
+    }
+
+    private void handleNavigation(String destination) {
+
+        switch (destination) {
+
+            case "Recruitments":
+                new JobDetailsFrame().setVisible(true);
+                this.dispose();
+                break;
+
+            case "Applications":
+                new ApplicationsFrame().setVisible(true);
+                this.dispose();
+                break;
+
+            case "Profile":
+                JOptionPane.showMessageDialog(this, "Profile page not implemented yet.");
+                break;
+
+            case "Off-Campus Jobs":
+                JOptionPane.showMessageDialog(this, "Off-Campus Jobs page not implemented yet.");
+                break;
+
+            case "Policy Page":
+                JOptionPane.showMessageDialog(this, "Policy page not implemented yet.");
+                break;
+
+            case "Logo Page":
+                JOptionPane.showMessageDialog(this, "Logo page not implemented yet.");
+                break;
+
+            case "Log Out":
+                int confirm = JOptionPane.showConfirmDialog(
+                        this,
+                        "Are you sure you want to log out?",
+                        "Confirm Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    // Replace with LoginFrame if you have one
+                    JOptionPane.showMessageDialog(this, "Logging out...");
+                    this.dispose();
+                }
+                break;
+
+            default:
+                JOptionPane.showMessageDialog(this, "Page not implemented.");
+        }
     }
 
     public static void main(String[] args) {
