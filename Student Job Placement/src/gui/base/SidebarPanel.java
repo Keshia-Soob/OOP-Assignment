@@ -1,83 +1,67 @@
 package gui.base;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.function.Consumer;
 
-/** Reusable sidebar with navigation buttons */
+import javax.swing.*;
+import java.awt.*;
+
 public class SidebarPanel extends JPanel {
 
     public enum NavItem {
-        DASHBOARD, PROFILE, RECRUITMENTS, APPLICATIONS, OFFCAMPUS, POLICY
+        DASHBOARD,
+        RECRUITMENTS,
+        APPLICATIONS,
+        PROFILE,
+        OFF_CAMPUS,
+        POLICY,
+        LOGOUT
     }
 
-    private Consumer<NavItem> navigationListener;
-    private final Map<NavItem, JButton> buttons = new EnumMap<>(NavItem.class);
+    public interface NavigationListener {
+        void onNavigate(NavItem item);
+    }
+
+    private NavigationListener navigationListener;
+    private NavItem activeItem;
 
     public SidebarPanel(NavItem activeItem) {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.activeItem = activeItem;
+
+        setLayout(new GridLayout(8, 1, 5, 10));
         setBackground(BaseFrame.COLOR_SIDEBAR_BG);
-        setPreferredSize(new Dimension(200, 1));
-        setBorder(new EmptyBorder(12, 10, 12, 10));
+        setPreferredSize(new Dimension(200, 0));
 
-        addNavButton("Dashboard", NavItem.DASHBOARD, UIManager.getIcon("FileView.directoryIcon"));
-        add(Box.createVerticalStrut(6));
-        addNavButton("Profile", NavItem.PROFILE, UIManager.getIcon("FileView.fileIcon"));
-        add(Box.createVerticalStrut(6));
-        addNavButton("Recruitments", NavItem.RECRUITMENTS, UIManager.getIcon("OptionPane.questionIcon"));
-        add(Box.createVerticalStrut(6));
-        addNavButton("Applications", NavItem.APPLICATIONS, UIManager.getIcon("OptionPane.informationIcon"));
-        add(Box.createVerticalStrut(6));
-        addNavButton("Off-Campus Jobs", NavItem.OFFCAMPUS, UIManager.getIcon("FileChooser.newFolderIcon"));
-        add(Box.createVerticalStrut(6));
-        addNavButton("Policy", NavItem.POLICY, UIManager.getIcon("FileView.hardDriveIcon"));
-
-        add(Box.createVerticalGlue());
-
-        setActive(activeItem);
+        add(createButton("Dashboard", NavItem.DASHBOARD));
+        add(createButton("Recruitments", NavItem.RECRUITMENTS));
+        add(createButton("Applications", NavItem.APPLICATIONS));
+        add(createButton("Profile", NavItem.PROFILE));
+        add(createButton("Off-Campus Jobs", NavItem.OFF_CAMPUS));
+        add(createButton("Policy", NavItem.POLICY));
+        add(createButton("Log Out", NavItem.LOGOUT));
     }
 
-    private void addNavButton(String text, NavItem item, Icon icon) {
-        JButton btn = new JButton(text);
-        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setIcon(icon);
+    public void setNavigationListener(NavigationListener listener) {
+        this.navigationListener = listener;
+    }
 
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setOpaque(true);
-        btn.setBackground(BaseFrame.COLOR_SIDEBAR_BG);
-        btn.setForeground(BaseFrame.COLOR_TEXT_DARK);
-        btn.setFont(new Font("SansSerif", Font.PLAIN, 13));
+    private JButton createButton(String text, NavItem item) {
 
-        btn.setBorder(new EmptyBorder(10, 12, 10, 12));
+        JButton button = new JButton(text);
+        button.setFocusPainted(false);
+        button.setHorizontalAlignment(SwingConstants.LEFT);
+        button.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
-        btn.addActionListener(e -> {
-            setActive(item);
-            if (navigationListener != null) navigationListener.accept(item);
+        if (item == activeItem) {
+            button.setBackground(BaseFrame.COLOR_SIDEBAR_ACTIVE);
+            button.setForeground(Color.WHITE);
+        } else {
+            button.setBackground(Color.WHITE);
+        }
+
+        button.addActionListener(e -> {
+            if (navigationListener != null) {
+                navigationListener.onNavigate(item);
+            }
         });
 
-        buttons.put(item, btn);
-        add(btn);
-    }
-
-    /** Highlight active button */
-    public void setActive(NavItem activeItem) {
-        for (Map.Entry<NavItem, JButton> entry : buttons.entrySet()) {
-            JButton b = entry.getValue();
-            if (entry.getKey() == activeItem) {
-                b.setBackground(BaseFrame.COLOR_SIDEBAR_ACTIVE);
-                b.setForeground(Color.WHITE);
-            } else {
-                b.setBackground(BaseFrame.COLOR_SIDEBAR_BG);
-                b.setForeground(BaseFrame.COLOR_TEXT_DARK);
-            }
-        }
-    }
-
-    public void setNavigationListener(Consumer<NavItem> listener) {
-        this.navigationListener = listener;
+        return button;
     }
 }

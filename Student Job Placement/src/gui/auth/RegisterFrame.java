@@ -1,199 +1,205 @@
 package gui.auth;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 public class RegisterFrame extends JFrame {
 
-    private JTextField fullNameField;
-    private JTextField emailField;
-    private JComboBox<String> courseBox;
-    private JComboBox<String> branchBox;
-    private JComboBox<String> sectionBox;
-    private JTextField cgpaField;
-    private JPasswordField passwordField;
-
-    private JLabel messageLabel;
+    private JTextField txtFullName, txtCgpa;
+    private JComboBox<String> comboCourse, comboBranch, comboSection;
+    private JPasswordField txtPassword;
+    private JButton btnRegister;
 
     public RegisterFrame() {
-        super("Student Registration");
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(720, 450);
+        setTitle("Placement & Job Recruitment System");
+        setSize(900, 550);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(245, 248, 252));
 
         add(buildHeader(), BorderLayout.NORTH);
-        add(buildForm(), BorderLayout.CENTER);
-        add(buildFooter(), BorderLayout.SOUTH);
+        add(buildCenter(), BorderLayout.CENTER);
     }
 
+    // ✅ MAIN METHOD FOR TESTING
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {}
+            new RegisterFrame().setVisible(true);
+        });
+    }
+
+    // ================= HEADER =================
     private JComponent buildHeader() {
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(52, 102, 160));
-        header.setBorder(new EmptyBorder(12, 12, 12, 12));
-        header.setPreferredSize(new Dimension(100, 56));
+        JPanel header = new JPanel();
+        header.setBackground(new Color(58, 102, 171));
+        header.setPreferredSize(new Dimension(1000, 60));
 
-        JLabel title = new JLabel("Student Registration", SwingConstants.CENTER);
+        JLabel title = new JLabel("Placement & Job Recruitment System");
         title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.add(title);
 
-        header.add(title, BorderLayout.CENTER);
         return header;
     }
 
-    private JComponent buildForm() {
-        JPanel root = new JPanel(new BorderLayout());
-        root.setBackground(Color.WHITE);
-        root.setBorder(new EmptyBorder(18, 26, 18, 26));
+    // ================= CENTER AREA =================
+    private JComponent buildCenter() {
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setBackground(new Color(245, 248, 252));
 
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setOpaque(false);
+        JPanel card = new JPanel(null);
+        card.setPreferredSize(new Dimension(650, 430));
+        card.setBackground(Color.WHITE);
+        card.setBorder(new CompoundBorder(
+                new LineBorder(new Color(220, 230, 240), 1, true),
+                new EmptyBorder(20, 30, 20, 30)
+        ));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // ===== Title =====
+        JLabel lblHeading = new JLabel("Student Registration");
+        lblHeading.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblHeading.setBounds(200, 10, 300, 30);
+        card.add(lblHeading);
 
-        int y = 0;
+        // ===== Full Name =====
+        JLabel lblFullName = new JLabel("Full Name");
+        lblFullName.setBounds(50, 60, 100, 20);
+        card.add(lblFullName);
 
-        // Full Name
-        gbc.gridx = 0; gbc.gridy = y;
-        form.add(new JLabel("Full Name:"), gbc);
+        txtFullName = new JTextField();
+        txtFullName.setBounds(50, 80, 550, 35);
+        styleField(txtFullName);
+        card.add(txtFullName);
 
-        gbc.gridx = 1; gbc.gridy = y++;
-        fullNameField = new JTextField();
-        fullNameField.setPreferredSize(new Dimension(260, 30));
-        form.add(fullNameField, gbc);
+        // ===== Course =====
+        JLabel lblCourse = new JLabel("Course");
+        lblCourse.setBounds(50, 125, 100, 20);
+        card.add(lblCourse);
 
-        // Email
-        gbc.gridx = 0; gbc.gridy = y;
-        form.add(new JLabel("Email:"), gbc);
+        comboCourse = new JComboBox<>(new String[]{
+                "Computer Science",
+                "Business",
+                "Engineering"
+        });
+        comboCourse.setBounds(50, 145, 260, 35);
+        styleField(comboCourse);
+        card.add(comboCourse);
 
-        gbc.gridx = 1; gbc.gridy = y++;
-        emailField = new JTextField();
-        emailField.setPreferredSize(new Dimension(260, 30));
-        form.add(emailField, gbc);
+        // ===== Branch =====
+        JLabel lblBranch = new JLabel("Branch");
+        lblBranch.setBounds(340, 125, 100, 20);
+        card.add(lblBranch);
 
-        // Course + Branch (two columns)
-        gbc.gridx = 0; gbc.gridy = y;
-        form.add(new JLabel("Course:"), gbc);
+        comboBranch = new JComboBox<>(new String[]{
+                "Computer Science",
+                "Business",
+                "Engineering"
+        });
+        comboBranch.setBounds(340, 145, 260, 35);
+        styleField(comboBranch);
+        card.add(comboBranch);
 
-        gbc.gridx = 1; gbc.gridy = y;
-        courseBox = new JComboBox<>(new String[]{"B.Tech", "BSc IT", "Diploma"});
-        courseBox.setPreferredSize(new Dimension(260, 30));
-        form.add(courseBox, gbc);
+        // ===== Section =====
+        JLabel lblSection = new JLabel("Section");
+        lblSection.setBounds(50, 190, 100, 20);
+        card.add(lblSection);
 
-        gbc.gridx = 2; gbc.gridy = y;
-        form.add(new JLabel("Branch:"), gbc);
+        comboSection = new JComboBox<>(new String[]{"A", "B", "C"});
+        comboSection.setBounds(50, 210, 260, 35);
+        styleField(comboSection);
+        card.add(comboSection);
 
-        gbc.gridx = 3; gbc.gridy = y++;
-        branchBox = new JComboBox<>(new String[]{"Computer Science", "Software Eng", "Networking"});
-        branchBox.setPreferredSize(new Dimension(260, 30));
-        form.add(branchBox, gbc);
+        // ===== CGPA =====
+        JLabel lblCgpa = new JLabel("CGPA");
+        lblCgpa.setBounds(340, 190, 100, 20);
+        card.add(lblCgpa);
 
-        // Section + CGPA
-        gbc.gridx = 0; gbc.gridy = y;
-        form.add(new JLabel("Section:"), gbc);
+        txtCgpa = new JTextField();
+        txtCgpa.setBounds(340, 210, 260, 35);
+        styleField(txtCgpa);
+        card.add(txtCgpa);
 
-        gbc.gridx = 1; gbc.gridy = y;
-        sectionBox = new JComboBox<>(new String[]{"A1", "A2", "B1", "B2"});
-        sectionBox.setPreferredSize(new Dimension(260, 30));
-        form.add(sectionBox, gbc);
+        // ===== Password =====
+        JLabel lblPassword = new JLabel("Password");
+        lblPassword.setBounds(50, 255, 100, 20);
+        card.add(lblPassword);
 
-        gbc.gridx = 2; gbc.gridy = y;
-        form.add(new JLabel("CGPA:"), gbc);
+        txtPassword = new JPasswordField();
+        txtPassword.setBounds(50, 275, 550, 35);
+        styleField(txtPassword);
+        card.add(txtPassword);
 
-        gbc.gridx = 3; gbc.gridy = y++;
-        cgpaField = new JTextField();
-        cgpaField.setPreferredSize(new Dimension(260, 30));
-        form.add(cgpaField, gbc);
+        // ===== Register Button =====
+        btnRegister = new JButton("Register");
+        btnRegister.setBounds(50, 330, 550, 45);
 
-        // Password
-        gbc.gridx = 0; gbc.gridy = y;
-        form.add(new JLabel("Password:"), gbc);
+        Color normalColor = new Color(58, 102, 171);
+        Color hoverColor  = new Color(48, 90, 155);
 
-        gbc.gridx = 1; gbc.gridy = y++;
-        passwordField = new JPasswordField();
-        passwordField.setPreferredSize(new Dimension(260, 30));
-        form.add(passwordField, gbc);
+        btnRegister.setBackground(normalColor);
+        btnRegister.setForeground(Color.WHITE);
+        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnRegister.setFocusPainted(false);
+        btnRegister.setBorderPainted(false);
+        btnRegister.setOpaque(true);
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Buttons
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
-        btnRow.setOpaque(false);
+        btnRegister.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btnRegister.setBackground(hoverColor);
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btnRegister.setBackground(normalColor);
+            }
+        });
 
-        JButton registerBtn = new JButton("Register");
-        JButton loginBtn = new JButton("Back to Login");
+        btnRegister.addActionListener(e -> registerStudent());
+        card.add(btnRegister);
 
-        registerBtn.setPreferredSize(new Dimension(180, 34));
-        loginBtn.setPreferredSize(new Dimension(140, 34));
+        // ===== Login Link =====
+        JLabel lblLogin = new JLabel("<html>Already have an account? <u>Login here</u></html>");
+        lblLogin.setForeground(new Color(58, 102, 171));
+        lblLogin.setBounds(210, 385, 300, 25);
+        lblLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        registerBtn.addActionListener(e -> handleRegister());
-        loginBtn.addActionListener(e -> openLogin());
+        lblLogin.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                JOptionPane.showMessageDialog(null, "Open Login Screen");
+            }
+        });
 
-        btnRow.add(registerBtn);
-        btnRow.add(loginBtn);
+        card.add(lblLogin);
 
-        // Message
-        messageLabel = new JLabel(" ", SwingConstants.CENTER);
-        messageLabel.setForeground(new Color(180, 0, 0));
-
-        root.add(form, BorderLayout.CENTER);
-        root.add(btnRow, BorderLayout.SOUTH);
-
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setOpaque(false);
-        wrapper.add(root, BorderLayout.CENTER);
-        wrapper.add(messageLabel, BorderLayout.SOUTH);
-
-        return wrapper;
+        centerPanel.add(card);
+        return centerPanel;
     }
 
-    private JComponent buildFooter() {
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.setBorder(new EmptyBorder(8, 12, 8, 12));
-        footer.setBackground(new Color(245, 245, 245));
-
-        JLabel info = new JLabel("Placement & Job Recruitment System");
-        info.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        info.setForeground(new Color(90, 90, 90));
-
-        footer.add(info, BorderLayout.WEST);
-        return footer;
+    // ===== Style Input Fields =====
+    private void styleField(JComponent field) {
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(new LineBorder(new Color(200, 210, 225), 1, true));
     }
 
-    private void handleRegister() {
-        String fullName = fullNameField.getText().trim();
-        String email = emailField.getText().trim();
-        String cgpaTxt = cgpaField.getText().trim();
-        String pass = new String(passwordField.getPassword());
+    // ===== Register Logic =====
+    private void registerStudent() {
+        String name = txtFullName.getText();
+        String cgpa = txtCgpa.getText();
+        String password = new String(txtPassword.getPassword());
 
-        if (fullName.isEmpty() || email.isEmpty() || cgpaTxt.isEmpty() || pass.isEmpty()) {
-            messageLabel.setText("Please fill in all required fields.");
+        if (name.isEmpty() || cgpa.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields!");
             return;
         }
 
-        double cgpa;
-        try {
-            cgpa = Double.parseDouble(cgpaTxt);
-        } catch (NumberFormatException ex) {
-            messageLabel.setText("CGPA must be a number.");
-            return;
-        }
-
-        // TODO: Replace with DB INSERT via StudentController/StudentService/StudentDAO
-        boolean saved = true; // demo
-
-        if (saved) {
-            JOptionPane.showMessageDialog(this, "Registration successful! Please login.");
-            openLogin();
-        } else {
-            messageLabel.setText("Registration failed. Try again.");
-        }
-    }
-
-    private void openLogin() {
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
-        dispose();
+        JOptionPane.showMessageDialog(this, "Registration Successful!");
     }
 }

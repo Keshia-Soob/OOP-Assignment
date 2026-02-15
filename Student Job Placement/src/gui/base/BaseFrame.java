@@ -1,24 +1,20 @@
 package gui.base;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * BaseFrame = your "base.html" in Swing.
- * All windows extend this to automatically get the same header + sidebar.
- */
 public abstract class BaseFrame extends JFrame {
 
-    // Theme (keep consistent across the whole project)
-    public static final Color COLOR_PRIMARY = new Color(52, 102, 160);     // header blue
-    public static final Color COLOR_SIDEBAR_BG = new Color(235, 242, 250); // light blue/gray
+    // Theme
+    public static final Color COLOR_PRIMARY = new Color(52, 102, 160);
+    public static final Color COLOR_SIDEBAR_BG = new Color(235, 242, 250);
     public static final Color COLOR_SIDEBAR_ACTIVE = new Color(66, 133, 244);
     public static final Color COLOR_TEXT_DARK = new Color(30, 30, 30);
 
     protected HeaderPanel header;
     protected SidebarPanel sidebar;
-
-    protected JPanel contentWrapper; // area where each frame injects its unique content
+    protected JPanel contentWrapper;
 
     public BaseFrame(String windowTitle, SidebarPanel.NavItem activeItem) {
         super(windowTitle);
@@ -42,26 +38,63 @@ public abstract class BaseFrame extends JFrame {
         contentWrapper.setBackground(Color.WHITE);
         add(contentWrapper, BorderLayout.CENTER);
 
-        // Inject frame-specific UI
         contentWrapper.add(buildContent(), BorderLayout.CENTER);
 
-        // Hook up navigation actions (you can replace these with real navigation later)
-        wireDefaultNavigation();
+        wireNavigation();
     }
 
-    /** Each screen provides its own center content */
     protected abstract JComponent buildContent();
 
-    /** Navigation wiring: Replace with your app routing later */
-    private void wireDefaultNavigation() {
+    private void wireNavigation() {
+
         sidebar.setNavigationListener(item -> {
-            // This is demo routing only. Replace with real screens.
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Navigate to: " + item,
-                    "Navigation",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+
+            JFrame nextFrame = null;
+
+            switch (item) {
+
+                case DASHBOARD:
+                    nextFrame = new gui.student.StudentDashboardFrame();
+                    break;
+
+                case RECRUITMENTS:
+                    nextFrame = new gui.student.JobDetailsFrame();
+                    break;
+
+                case APPLICATIONS:
+                    nextFrame = new gui.student.ApplicationsFrame();
+                    break;
+
+                case PROFILE:
+                    JOptionPane.showMessageDialog(this, "Profile not implemented yet.");
+                    return;
+
+                case OFF_CAMPUS:
+                    JOptionPane.showMessageDialog(this, "Off-Campus not implemented yet.");
+                    return;
+
+                case POLICY:
+                    JOptionPane.showMessageDialog(this, "Policy not implemented yet.");
+                    return;
+
+                case LOGOUT:
+                    int confirm = JOptionPane.showConfirmDialog(
+                            this,
+                            "Are you sure you want to log out?",
+                            "Confirm Logout",
+                            JOptionPane.YES_NO_OPTION
+                    );
+
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        this.dispose();
+                    }
+                    return;
+            }
+
+            if (nextFrame != null) {
+                nextFrame.setVisible(true);
+                this.dispose();
+            }
         });
     }
 }
