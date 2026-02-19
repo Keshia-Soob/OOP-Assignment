@@ -4,6 +4,8 @@ import gui.student.ApplicationsFrame;   // temporary (until you have StudentDash
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class LoginFrame extends JFrame {
 
@@ -14,10 +16,17 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         super("Login");
 
+        // ✅ Ensure same Look & Feel as RegisterFrame (because RegisterFrame's main() won't run here)
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            SwingUtilities.updateComponentTreeUI(this);
+        } catch (Exception ignored) {}
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(520, 360);
+        setSize(900, 550); // ✅ match RegisterFrame size for consistent feel
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(245, 248, 252)); // ✅ match RegisterFrame bg
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
@@ -25,89 +34,120 @@ public class LoginFrame extends JFrame {
     }
 
     private JComponent buildHeader() {
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(52, 102, 160));
-        header.setBorder(new EmptyBorder(12, 12, 12, 12));
-        header.setPreferredSize(new Dimension(100, 56));
+        JPanel header = new JPanel();
+        header.setBackground(new Color(58, 102, 171)); // ✅ match RegisterFrame
+        header.setPreferredSize(new Dimension(1000, 60));
 
-        JLabel title = new JLabel("Login", SwingConstants.CENTER);
+        JLabel title = new JLabel("Placement & Job Recruitment System");
         title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18)); // ✅ match RegisterFrame
+        header.add(title);
 
-        header.add(title, BorderLayout.CENTER);
         return header;
     }
 
     private JComponent buildCenter() {
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setBackground(Color.WHITE);
-        center.setBorder(new EmptyBorder(18, 26, 18, 26));
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setBackground(new Color(245, 248, 252));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 0; gbc.gridy = 0;
+        // Card like RegisterFrame
+        JPanel card = new JPanel(null);
+        card.setPreferredSize(new Dimension(650, 380));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new javax.swing.border.LineBorder(new Color(220, 230, 240), 1, true),
+                new EmptyBorder(20, 30, 20, 30)
+        ));
 
-        JLabel emailLbl = new JLabel("Email / Username:");
-        emailLbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        center.add(emailLbl, gbc);
+        JLabel heading = new JLabel("Login");
+        heading.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        heading.setBounds(280, 10, 200, 30);
+        card.add(heading);
 
-        gbc.gridx = 1;
+        JLabel emailLbl = new JLabel("Email / Username");
+        emailLbl.setBounds(50, 60, 200, 20);
+        emailLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        card.add(emailLbl);
+
         emailField = new JTextField();
-        emailField.setPreferredSize(new Dimension(260, 30));
-        center.add(emailField, gbc);
+        emailField.setBounds(50, 80, 550, 35);
+        styleField(emailField);
+        card.add(emailField);
 
-        gbc.gridx = 0; gbc.gridy++;
-        JLabel passLbl = new JLabel("Password:");
-        passLbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        center.add(passLbl, gbc);
+        JLabel passLbl = new JLabel("Password");
+        passLbl.setBounds(50, 125, 200, 20);
+        passLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        card.add(passLbl);
 
-        gbc.gridx = 1;
         passwordField = new JPasswordField();
-        passwordField.setPreferredSize(new Dimension(260, 30));
-        center.add(passwordField, gbc);
-
-        gbc.gridx = 0; gbc.gridy++;
-        gbc.gridwidth = 2;
-
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        btnRow.setOpaque(false);
+        passwordField.setBounds(50, 145, 550, 35);
+        styleField(passwordField);
+        card.add(passwordField);
 
         JButton loginBtn = new JButton("Log In");
-        JButton registerBtn = new JButton("Register");
+        loginBtn.setBounds(50, 205, 550, 45);
 
-        loginBtn.setPreferredSize(new Dimension(120, 32));
-        registerBtn.setPreferredSize(new Dimension(120, 32));
+        Color normalColor = new Color(58, 102, 171);
+        Color hoverColor  = new Color(48, 90, 155);
+
+        loginBtn.setBackground(normalColor);
+        loginBtn.setForeground(Color.WHITE);
+        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        loginBtn.setFocusPainted(false);
+        loginBtn.setBorderPainted(false);
+        loginBtn.setOpaque(true);
+        loginBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        loginBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                loginBtn.setBackground(hoverColor);
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                loginBtn.setBackground(normalColor);
+            }
+        });
 
         loginBtn.addActionListener(e -> handleLogin());
-        registerBtn.addActionListener(e -> openRegister());
+        card.add(loginBtn);
 
-        btnRow.add(loginBtn);
-        btnRow.add(registerBtn);
-
-        center.add(btnRow, gbc);
-
-        gbc.gridy++;
         messageLabel = new JLabel(" ", SwingConstants.CENTER);
         messageLabel.setForeground(new Color(180, 0, 0));
-        center.add(messageLabel, gbc);
+        messageLabel.setBounds(50, 255, 550, 20);
+        card.add(messageLabel);
 
-        gbc.gridy++;
-        JLabel hint = new JLabel("Don't have an account? Click Register.", SwingConstants.CENTER);
-        hint.setFont(new Font("SansSerif", Font.ITALIC, 12));
-        hint.setForeground(new Color(90, 90, 90));
-        center.add(hint, gbc);
+        // Clickable Register link
+        JLabel lblRegister = new JLabel("<html>Don't have an account? <u>Register</u></html>");
+        lblRegister.setForeground(new Color(58, 102, 171));
+        lblRegister.setBounds(225, 290, 300, 25);
+        lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        return center;
+        lblRegister.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                openRegister();
+            }
+        });
+
+        card.add(lblRegister);
+
+        centerPanel.add(card);
+        return centerPanel;
+    }
+
+    private void styleField(JComponent field) {
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(new javax.swing.border.LineBorder(new Color(200, 210, 225), 1, true));
     }
 
     private JComponent buildFooter() {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBorder(new EmptyBorder(8, 12, 8, 12));
-        footer.setBackground(new Color(245, 245, 245));
+        footer.setBackground(new Color(245, 248, 252));
 
         JLabel info = new JLabel("Student Job Recruitment System");
-        info.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        info.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         info.setForeground(new Color(90, 90, 90));
 
         footer.add(info, BorderLayout.WEST);
@@ -123,11 +163,10 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        // TODO: Replace this with your AuthController/AuthService DB check
-        boolean success = true; // demo
+        // TODO: Replace with DB check
+        boolean success = true;
 
         if (success) {
-            // open main system (full sidebar screens)
             SwingUtilities.invokeLater(() -> new ApplicationsFrame().setVisible(true));
             dispose();
         } else {
@@ -136,7 +175,14 @@ public class LoginFrame extends JFrame {
     }
 
     private void openRegister() {
-        SwingUtilities.invokeLater(() -> new RegisterFrame().setVisible(true));
+        SwingUtilities.invokeLater(() -> {
+            // ✅ Ensure same Look & Feel applied before showing RegisterFrame too
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {}
+
+            new RegisterFrame().setVisible(true);
+        });
         dispose();
     }
 }

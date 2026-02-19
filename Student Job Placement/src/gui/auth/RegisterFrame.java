@@ -165,15 +165,25 @@ public class RegisterFrame extends JFrame {
         btnRegister.addActionListener(e -> registerStudent());
         card.add(btnRegister);
 
-        // ===== Login Link =====
+        // ===== Login Link (UPDATED) =====
         JLabel lblLogin = new JLabel("<html>Already have an account? <u>Login here</u></html>");
         lblLogin.setForeground(new Color(58, 102, 171));
         lblLogin.setBounds(210, 385, 300, 25);
         lblLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         lblLogin.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(null, "Open Login Screen");
+
+                // Open LoginFrame
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    } catch (Exception ignored) {}
+                    new LoginFrame().setVisible(true);
+                });
+
+                dispose(); // close RegisterFrame
             }
         });
 
@@ -183,13 +193,11 @@ public class RegisterFrame extends JFrame {
         return centerPanel;
     }
 
-    // ===== Style Input Fields =====
     private void styleField(JComponent field) {
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         field.setBorder(new LineBorder(new Color(200, 210, 225), 1, true));
     }
 
-    // ===== Register Logic =====
     private void registerStudent() {
         String name = txtFullName.getText();
         String cgpa = txtCgpa.getText();
