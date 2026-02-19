@@ -58,7 +58,7 @@ public abstract class BaseFrame extends JFrame {
                     break;
 
                 case RECRUITMENTS:
-                    nextFrame = new gui.student.JobDetailsFrame();
+                    nextFrame = new gui.student.RecruitmentFrame();
                     break;
 
                 case APPLICATIONS:

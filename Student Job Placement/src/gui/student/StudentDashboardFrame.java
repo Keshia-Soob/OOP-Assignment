@@ -67,7 +67,7 @@ public class StudentDashboardFrame extends BaseFrame {
         switch (destination) {
 
             case "Recruitments":
-                new JobDetailsFrame().setVisible(true);
+                new RecruitmentFrame().setVisible(true);
                 this.dispose();
                 break;
 

@@ -2,6 +2,7 @@ package gui.student;
 
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
+
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
@@ -38,10 +39,39 @@ public class RecruitmentFrame extends BaseFrame {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // ================= TITLE =================
+        // ================= TOP CONTAINER (Title + Filters) =================
+        JPanel topContainer = new JPanel();
+        topContainer.setLayout(new BoxLayout(topContainer, BoxLayout.Y_AXIS));
+        topContainer.setBackground(Color.WHITE);
+
         JLabel titleLabel = new JLabel("Recruitments");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-        mainPanel.add(titleLabel, BorderLayout.NORTH);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        topContainer.add(titleLabel);
+        topContainer.add(Box.createVerticalStrut(15));
+
+        // ================= FILTER PANEL =================
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        filterPanel.setBackground(Color.WHITE);
+        filterPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        companyFilter = new JComboBox<>();
+        jobFilter = new JComboBox<>();
+        cgpaFilter = new JComboBox<>();
+
+        filterPanel.add(new JLabel("Company:"));
+        filterPanel.add(companyFilter);
+
+        filterPanel.add(new JLabel("Job Title:"));
+        filterPanel.add(jobFilter);
+
+        filterPanel.add(new JLabel("Min CGPA:"));
+        filterPanel.add(cgpaFilter);
+
+        topContainer.add(filterPanel);
+
+        mainPanel.add(topContainer, BorderLayout.NORTH);
 
         // ================= DATA =================
         allData = new Object[][]{
@@ -61,25 +91,6 @@ public class RecruitmentFrame extends BaseFrame {
 
         filteredData = allData;
         totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
-
-        // ================= FILTER PANEL =================
-        JPanel filterPanel = new JPanel();
-        filterPanel.setBackground(Color.WHITE);
-
-        companyFilter = new JComboBox<>();
-        jobFilter = new JComboBox<>();
-        cgpaFilter = new JComboBox<>();
-
-        filterPanel.add(new JLabel("Company:"));
-        filterPanel.add(companyFilter);
-
-        filterPanel.add(new JLabel("Job Title:"));
-        filterPanel.add(jobFilter);
-
-        filterPanel.add(new JLabel("Min CGPA:"));
-        filterPanel.add(cgpaFilter);
-
-        mainPanel.add(filterPanel, BorderLayout.BEFORE_FIRST_LINE);
 
         populateFilters();
 
@@ -170,7 +181,7 @@ public class RecruitmentFrame extends BaseFrame {
 
         String selectedCompany = companyFilter.getSelectedItem().toString();
         String selectedJob = jobFilter.getSelectedItem().toString();
-        String selectedCgpa = cgpaFilter.getSelectedItem().toString();
+        String selectedCgpa = companyFilter.getSelectedItem().toString();
 
         java.util.List<Object[]> temp = new ArrayList<>();
 
@@ -194,7 +205,11 @@ public class RecruitmentFrame extends BaseFrame {
         filteredData = temp.toArray(Object[][]::new);
 
         currentPage = 1;
+        if (filteredData.length == 0) {
+        totalPages = 1;
+        } else {
         totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
+        }
 
         updateTable();
     }
@@ -204,11 +219,23 @@ public class RecruitmentFrame extends BaseFrame {
 
         model.setRowCount(0);
 
-        if (filteredData.length == 0) {
+        // Prevent invalid pagination
+        if (filteredData == null || filteredData.length == 0) {
             pageLabel.setText("No records found");
             btnPrevious.setEnabled(false);
             btnNext.setEnabled(false);
             return;
+        }
+
+        totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
+
+        // Force currentPage to stay within valid bounds
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
         }
 
         int start = (currentPage - 1) * rowsPerPage;
@@ -224,7 +251,6 @@ public class RecruitmentFrame extends BaseFrame {
         btnNext.setEnabled(currentPage < totalPages);
     }
 
-    // ================= MAIN =================
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new RecruitmentFrame().setVisible(true);
