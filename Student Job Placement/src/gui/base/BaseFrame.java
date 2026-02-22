@@ -65,12 +65,12 @@ public abstract class BaseFrame extends JFrame {
                     nextFrame = new gui.student.ApplicationsFrame();
                     break;
 
+                case OFF_CAMPUS:
+                    nextFrame = new gui.student.OffCampusFrame();
+                    break;
+
                 case PROFILE:
                     JOptionPane.showMessageDialog(this, "Profile not implemented yet.");
-                    return;
-
-                case OFF_CAMPUS:
-                    JOptionPane.showMessageDialog(this, "Off-Campus not implemented yet.");
                     return;
 
                 case POLICY:
@@ -86,6 +86,8 @@ public abstract class BaseFrame extends JFrame {
                     );
 
                     if (confirm == JOptionPane.YES_OPTION) {
+                        // ✅ Go back to LoginFrame
+                        new gui.auth.LoginFrame().setVisible(true);
                         this.dispose();
                     }
                     return;
