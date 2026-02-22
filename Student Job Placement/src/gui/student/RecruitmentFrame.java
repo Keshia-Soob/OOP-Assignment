@@ -2,7 +2,6 @@ package gui.student;
 
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
-
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
@@ -66,11 +65,16 @@ public class RecruitmentFrame extends BaseFrame {
         filterPanel.add(new JLabel("Job Title:"));
         filterPanel.add(jobFilter);
 
-        filterPanel.add(new JLabel("Min CGPA:"));
+        filterPanel.add(new JLabel("CGPA:"));
         filterPanel.add(cgpaFilter);
 
-        topContainer.add(filterPanel);
+        // ===== Reset Filters Button =====
+        JButton resetButton = new JButton("Reset Filters");
+        filterPanel.add(resetButton);
 
+        resetButton.addActionListener(e -> resetFilters());
+
+        topContainer.add(filterPanel);
         mainPanel.add(topContainer, BorderLayout.NORTH);
 
         // ================= DATA =================
@@ -85,6 +89,7 @@ public class RecruitmentFrame extends BaseFrame {
                 {"IBM", "Consultant", 6.8, "View Detail"},
                 {"Capgemini", "Software Tester", 6.2, "View Detail"},
                 {"Deloitte", "Business Analyst", 7.1, "View Detail"},
+                {"Oracle", "Database Admin", 6.9, "View Detail"},
                 {"Oracle", "Database Admin", 6.9, "View Detail"},
                 {"HCL", "Support Engineer", 6.4, "View Detail"}
         };
@@ -181,7 +186,7 @@ public class RecruitmentFrame extends BaseFrame {
 
         String selectedCompany = companyFilter.getSelectedItem().toString();
         String selectedJob = jobFilter.getSelectedItem().toString();
-        String selectedCgpa = companyFilter.getSelectedItem().toString();
+        String selectedCgpa = cgpaFilter.getSelectedItem().toString(); // ✅ Fixed
 
         java.util.List<Object[]> temp = new ArrayList<>();
 
@@ -205,11 +210,7 @@ public class RecruitmentFrame extends BaseFrame {
         filteredData = temp.toArray(Object[][]::new);
 
         currentPage = 1;
-        if (filteredData.length == 0) {
-        totalPages = 1;
-        } else {
-        totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
-        }
+        totalPages = (filteredData.length == 0) ? 1 : (int) Math.ceil((double) filteredData.length / rowsPerPage);
 
         updateTable();
     }
@@ -229,14 +230,8 @@ public class RecruitmentFrame extends BaseFrame {
 
         totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
 
-        // Force currentPage to stay within valid bounds
-        if (currentPage < 1) {
-            currentPage = 1;
-        }
-
-        if (currentPage > totalPages) {
-            currentPage = totalPages;
-        }
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
 
         int start = (currentPage - 1) * rowsPerPage;
         int end = Math.min(start + rowsPerPage, filteredData.length);
@@ -249,6 +244,15 @@ public class RecruitmentFrame extends BaseFrame {
 
         btnPrevious.setEnabled(currentPage > 1);
         btnNext.setEnabled(currentPage < totalPages);
+    }
+
+    // ================= RESET FILTERS =================
+    private void resetFilters() {
+        companyFilter.setSelectedIndex(0); // "All"
+        jobFilter.setSelectedIndex(0);     // "All"
+        cgpaFilter.setSelectedIndex(0);    // "All"
+
+        applyFilters();
     }
 
     public static void main(String[] args) {
