@@ -199,15 +199,47 @@ public class RegisterFrame extends JFrame {
     }
 
     private void registerStudent() {
-        String name = txtFullName.getText();
-        String cgpa = txtCgpa.getText();
+        String name = txtFullName.getText().trim();
+        String course = (String) comboCourse.getSelectedItem();
+        String branch = (String) comboBranch.getSelectedItem();
+        String section = (String) comboSection.getSelectedItem();
+        String cgpaText = txtCgpa.getText().trim();
         String password = new String(txtPassword.getPassword());
 
-        if (name.isEmpty() || cgpa.isEmpty() || password.isEmpty()) {
+        if (name.isEmpty() || cgpaText.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill all fields!");
             return;
         }
 
-        JOptionPane.showMessageDialog(this, "Registration Successful!");
+        double cgpa;
+        try {
+            cgpa = Double.parseDouble(cgpaText);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "CGPA must be a number (e.g. 3.25)");
+            return;
+        }
+
+        String passwordHash = PasswordUtil.sha256(password);
+
+        String sql = "INSERT INTO students (full_name, course, branch, section, cgpa, password_hash) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (java.sql.Connection conn = DB.getConnection();
+            java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ps.setString(2, course);
+            ps.setString(3, branch);
+            ps.setString(4, section);
+            ps.setDouble(5, cgpa);
+            ps.setString(6, passwordHash);
+
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Registration saved in MySQL ✅");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "DB Error: " + e.getMessage());
+        }
     }
 }
