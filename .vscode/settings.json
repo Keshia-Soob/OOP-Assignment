@@ -1,0 +1,8 @@
+{
+    "java.project.sourcePaths": [
+        "Student Job Placement\\src"
+    ],
+    "java.project.referencedLibraries": [
+        "Student Job Placement\\lib\\mysql-connector-j-9.6.0.jar"
+    ]
+}
