@@ -13,7 +13,7 @@ public class DatabaseManager {
         createJobsTable();
         createApplicationsTable();
         createOffCampusApplicationsTable(); // optional but matches your UI button
-        insertDummyJobs(); // optional but helps testing
+       // insertDummyJobs(); // optional but helps testing
     }
 
     private static void createUsersTable() {

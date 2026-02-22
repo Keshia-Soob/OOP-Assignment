@@ -1,11 +1,16 @@
 package gui.student;
 
+import dao.JobDAO;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import model.Job;
 
 public class RecruitmentFrame extends BaseFrame {
 
@@ -71,28 +76,22 @@ public class RecruitmentFrame extends BaseFrame {
         // ===== Reset Filters Button =====
         JButton resetButton = new JButton("Reset Filters");
         filterPanel.add(resetButton);
-
         resetButton.addActionListener(e -> resetFilters());
 
         topContainer.add(filterPanel);
         mainPanel.add(topContainer, BorderLayout.NORTH);
 
-        // ================= DATA =================
-        allData = new Object[][]{
-                {"Infosys", "Software Engineer", 6.5, "View Detail"},
-                {"TCS", "Data Analyst", 6.3, "View Detail"},
-                {"Google", "Backend Developer", 7.0, "View Detail"},
-                {"Accenture", "Marketing Associate", 7.0, "View Detail"},
-                {"TCS", "System Engineer", 6.0, "View Detail"},
-                {"Amazon", "Cloud Engineer", 7.5, "View Detail"},
-                {"Microsoft", "Frontend Developer", 7.2, "View Detail"},
-                {"IBM", "Consultant", 6.8, "View Detail"},
-                {"Capgemini", "Software Tester", 6.2, "View Detail"},
-                {"Deloitte", "Business Analyst", 7.1, "View Detail"},
-                {"Oracle", "Database Admin", 6.9, "View Detail"},
-                {"Oracle", "Database Admin", 6.9, "View Detail"},
-                {"HCL", "Support Engineer", 6.4, "View Detail"}
-        };
+        // ================= DATA FROM DATABASE =================
+        List<Job> jobsFromDb = JobDAO.getAllJobs();
+
+        allData = new Object[jobsFromDb.size()][4];
+        for (int i = 0; i < jobsFromDb.size(); i++) {
+            Job job = jobsFromDb.get(i);
+            allData[i][0] = job.getCompany();
+            allData[i][1] = job.getJobTitle();
+            allData[i][2] = job.getMinCgpa();
+            allData[i][3] = "View Detail"; // will show description on click
+        }
 
         filteredData = allData;
         totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
@@ -100,12 +99,7 @@ public class RecruitmentFrame extends BaseFrame {
         populateFilters();
 
         // ================= TABLE =================
-        String[] columns = {
-                "Company",
-                "Job Title",
-                "Minimum CGPA",
-                "Application"
-        };
+        String[] columns = {"Company", "Job Title", "Minimum CGPA", "Application"};
 
         model = new DefaultTableModel(columns, 0) {
             @Override
@@ -119,8 +113,36 @@ public class RecruitmentFrame extends BaseFrame {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        // ===== Make "View Detail" clickable =====
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (col == 3) {
+                    int modelRow = table.convertRowIndexToModel(row);
+                    Job job = jobsFromDb.get(modelRow + (currentPage - 1) * rowsPerPage);
+                    JOptionPane.showMessageDialog(
+                            RecruitmentFrame.this,
+                            job.getDescription(),
+                            job.getCompany() + " - " + job.getJobTitle(),
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
+            }
+        });
+
+        // ================= TABLE PANEL (NO SCROLLBAR) =================
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+
+        // Fix table height for pagination
+        table.setPreferredScrollableViewportSize(new Dimension(800, 300));
+
+        tablePanel.add(table.getTableHeader(), BorderLayout.NORTH);
+        tablePanel.add(table, BorderLayout.CENTER);
+
+        mainPanel.add(tablePanel, BorderLayout.CENTER);
 
         // ================= PAGINATION =================
         JPanel paginationPanel = new JPanel();
@@ -160,21 +182,33 @@ public class RecruitmentFrame extends BaseFrame {
 
         companyFilter.addItem("All");
         jobFilter.addItem("All");
+
+        // CGPA Ranges
         cgpaFilter.addItem("All");
+        cgpaFilter.addItem("0-1");
+        cgpaFilter.addItem("1-2");
+        cgpaFilter.addItem("2-3");
+        cgpaFilter.addItem("3-4");
+        cgpaFilter.addItem("4-5");
+        cgpaFilter.addItem("5-6");
+        cgpaFilter.addItem("6-7");
+        cgpaFilter.addItem("7-8");
+        cgpaFilter.addItem("8-9");
+        cgpaFilter.addItem("9-10");
 
         Set<String> companies = new HashSet<>();
         Set<String> jobs = new HashSet<>();
-        Set<String> cgpas = new HashSet<>();
 
         for (Object[] row : allData) {
             companies.add(row[0].toString());
             jobs.add(row[1].toString());
-            cgpas.add(row[2].toString());
         }
 
-        for (String c : companies) companyFilter.addItem(c);
-        for (String j : jobs) jobFilter.addItem(j);
-        for (String g : cgpas) cgpaFilter.addItem(g);
+        for (String c : companies)
+            companyFilter.addItem(c);
+
+        for (String j : jobs)
+            jobFilter.addItem(j);
 
         companyFilter.addActionListener(e -> applyFilters());
         jobFilter.addActionListener(e -> applyFilters());
@@ -186,22 +220,37 @@ public class RecruitmentFrame extends BaseFrame {
 
         String selectedCompany = companyFilter.getSelectedItem().toString();
         String selectedJob = jobFilter.getSelectedItem().toString();
-        String selectedCgpa = cgpaFilter.getSelectedItem().toString(); // ✅ Fixed
+        String selectedCgpa = cgpaFilter.getSelectedItem().toString();
 
-        java.util.List<Object[]> temp = new ArrayList<>();
+        List<Object[]> temp = new ArrayList<>();
 
         for (Object[] row : allData) {
 
             boolean match = true;
 
-            if (!selectedCompany.equals("All") && !row[0].toString().equals(selectedCompany))
+            double cgpa = Double.parseDouble(row[2].toString());
+
+            // Company filter
+            if (!selectedCompany.equals("All") &&
+                    !row[0].toString().equals(selectedCompany))
                 match = false;
 
-            if (!selectedJob.equals("All") && !row[1].toString().equals(selectedJob))
+            // Job filter
+            if (!selectedJob.equals("All") &&
+                    !row[1].toString().equals(selectedJob))
                 match = false;
 
-            if (!selectedCgpa.equals("All") && !row[2].toString().equals(selectedCgpa))
-                match = false;
+            // CGPA Range filter
+            if (!selectedCgpa.equals("All")) {
+
+                String[] range = selectedCgpa.split("-");
+
+                double min = Double.parseDouble(range[0]);
+                double max = Double.parseDouble(range[1]);
+
+                if (cgpa < min || cgpa >= max)
+                    match = false;
+            }
 
             if (match)
                 temp.add(row);
@@ -210,17 +259,18 @@ public class RecruitmentFrame extends BaseFrame {
         filteredData = temp.toArray(Object[][]::new);
 
         currentPage = 1;
-        totalPages = (filteredData.length == 0) ? 1 : (int) Math.ceil((double) filteredData.length / rowsPerPage);
+
+        totalPages = (filteredData.length == 0)
+                ? 1
+                : (int) Math.ceil((double) filteredData.length / rowsPerPage);
 
         updateTable();
     }
 
     // ================= UPDATE TABLE =================
     private void updateTable() {
-
         model.setRowCount(0);
 
-        // Prevent invalid pagination
         if (filteredData == null || filteredData.length == 0) {
             pageLabel.setText("No records found");
             btnPrevious.setEnabled(false);
@@ -248,16 +298,21 @@ public class RecruitmentFrame extends BaseFrame {
 
     // ================= RESET FILTERS =================
     private void resetFilters() {
-        companyFilter.setSelectedIndex(0); // "All"
-        jobFilter.setSelectedIndex(0);     // "All"
-        cgpaFilter.setSelectedIndex(0);    // "All"
-
+        companyFilter.setSelectedIndex(0);
+        jobFilter.setSelectedIndex(0);
+        cgpaFilter.setSelectedIndex(0);
         applyFilters();
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new RecruitmentFrame().setVisible(true);
+
+            RecruitmentFrame frame = new RecruitmentFrame();
+
+            frame.setSize(1000, 650);   // Bigger window
+            frame.setLocationRelativeTo(null); // Center on screen
+            frame.setVisible(true);
+
         });
     }
 }
