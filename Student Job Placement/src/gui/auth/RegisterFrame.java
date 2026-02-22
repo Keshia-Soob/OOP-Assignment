@@ -165,7 +165,7 @@ public class RegisterFrame extends JFrame {
         btnRegister.addActionListener(e -> registerStudent());
         card.add(btnRegister);
 
-        // ===== Login Link (UPDATED) =====
+        // ===== Login Link =====
         JLabel lblLogin = new JLabel("<html>Already have an account? <u>Login here</u></html>");
         lblLogin.setForeground(new Color(58, 102, 171));
         lblLogin.setBounds(210, 385, 300, 25);
@@ -174,16 +174,13 @@ public class RegisterFrame extends JFrame {
         lblLogin.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
-                // Open LoginFrame
                 SwingUtilities.invokeLater(() -> {
                     try {
                         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     } catch (Exception ignored) {}
                     new LoginFrame().setVisible(true);
                 });
-
-                dispose(); // close RegisterFrame
+                dispose();
             }
         });
 
@@ -198,6 +195,7 @@ public class RegisterFrame extends JFrame {
         field.setBorder(new LineBorder(new Color(200, 210, 225), 1, true));
     }
 
+    // ✅ UPDATED: inserts into USERS table (not students)
     private void registerStudent() {
         String name = txtFullName.getText().trim();
         String course = (String) comboCourse.getSelectedItem();
@@ -219,13 +217,21 @@ public class RegisterFrame extends JFrame {
             return;
         }
 
+        // optional: basic range validation
+        if (cgpa < 0 || cgpa > 10) { // change to 4.0 if your system uses /4
+            JOptionPane.showMessageDialog(this, "CGPA must be between 0 and 10.");
+            return;
+        }
+
         String passwordHash = PasswordUtil.sha256(password);
 
-        String sql = "INSERT INTO students (full_name, course, branch, section, cgpa, password_hash) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO users (full_name, course, branch, section, cgpa, password_hash, role)
+            VALUES (?, ?, ?, ?, ?, ?, 'STUDENT')
+        """;
 
         try (java.sql.Connection conn = DB.getConnection();
-            java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, name);
             ps.setString(2, course);
@@ -235,7 +241,12 @@ public class RegisterFrame extends JFrame {
             ps.setString(6, passwordHash);
 
             ps.executeUpdate();
+
             JOptionPane.showMessageDialog(this, "Registration saved in MySQL ✅");
+
+            // optional: go to login after successful register
+            new LoginFrame().setVisible(true);
+            dispose();
 
         } catch (Exception e) {
             e.printStackTrace();
