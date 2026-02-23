@@ -1,8 +1,8 @@
 package dao;
 
 import gui.auth.DB;
-import java.sql.Connection; // change if your DB class package changes
-import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.SQLException; // change if your DB class package changes
 import java.sql.Statement;
 
 public class DatabaseManager {
@@ -12,7 +12,7 @@ public class DatabaseManager {
         createJobsTable();
         createApplicationsTable();
         createOffCampusApplicationsTable(); // optional but matches your UI button
-       // insertDummyJobs(); // optional but helps testing
+        //insertDummyJobs(); // optional but helps testing
     }
 
     private static void createUsersTable() {
@@ -45,13 +45,25 @@ public class DatabaseManager {
     private static void createJobsTable() {
         String sql = """
             CREATE TABLE IF NOT EXISTS jobs (
-              job_id INT AUTO_INCREMENT PRIMARY KEY,
-              company VARCHAR(120) NOT NULL,
-              job_title VARCHAR(120) NOT NULL,
-              min_cgpa DECIMAL(3,2) DEFAULT 0.00,
-              section VARCHAR(20), 
-              description TEXT,
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            job_id INT AUTO_INCREMENT PRIMARY KEY,
+            
+            company VARCHAR(120) NOT NULL,
+            job_title VARCHAR(120) NOT NULL,
+            location VARCHAR(150),
+            
+            min_cgpa DECIMAL(3,2) DEFAULT 0.00,
+            salary DECIMAL(10,2),
+            
+            description TEXT,
+            key_responsibilities TEXT,
+            
+            duration VARCHAR(100),
+            start_date DATE,
+            
+            contact_email VARCHAR(150),
+            contact_number VARCHAR(20),
+            
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """;
 

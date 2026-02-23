@@ -10,92 +10,220 @@ public class JobDAO {
 
     /* ====================== INSERT DUMMY JOBS ====================== */
     public static void insertDummyJobs() {
-        try (Connection con = DB.getConnection(); Statement st = con.createStatement()) {
 
-           String[] sql = {
+        String sql = """
+            INSERT INTO jobs 
+            (company, job_title, location, min_cgpa, salary, description,
+            key_responsibilities, duration, start_date,
+            contact_email, contact_number)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """;
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Accenture','Software Developer',3.0,'A','Java systems')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('IBM','Data Analyst',3.2,'B','Data reports')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Huawei','Network Engineer',2.8,'C','Network support')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('MCB','IT Officer',3.3,'A','Bank systems')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Emtel','Web Developer',3.0,'B','Website systems')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Orange','IT Support',2.5,'C','Customer support')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Ceridian','QA Tester',2.6,'A','Testing software')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Infosys','System Engineer',2.7,'B','System support')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Deloitte','Consultant',3.4,'A','IT consulting')",
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('PwC','Business Analyst',3.1,'C','Business analysis')",
+        try (Connection con = DB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
 
-                /* ===== 20 NEW ROWS ===== */
+            Object[][] jobs = {
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Google','Backend Developer',3.5,'A','Cloud backend systems')",
+                {"Accenture", "Backend Developer", "Ebene", 3.0, 45000,
+                        "Work on enterprise backend systems using Java and Spring.",
+                        "• Develop REST APIs\n• Optimize database queries\n• Perform code reviews",
+                        "6 Months", "2026-09-21", "hr@accenture.mu", "52560001"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Amazon','Cloud Engineer',3.4,'B','AWS cloud infrastructure')",
+                {"IBM", "Data Analyst", "Rose Hill", 3.2, 42000,
+                        "Analyze large datasets and create business reports.",
+                        "• Data cleaning\n• Create dashboards\n• Present insights",
+                        "1 Year", "2026-10-01", "careers@ibm.mu", "52560002"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Microsoft','Software Engineer',3.6,'A','Enterprise software development')",
+                {"Huawei", "Network Engineer", "Port Louis", 2.8, 40000,
+                        "Maintain telecom network infrastructure.",
+                        "• Configure routers\n• Monitor network traffic\n• Troubleshoot issues",
+                        "9 Months", "2026-09-25", "jobs@huawei.mu", "52560003"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('SAP','ERP Consultant',3.2,'C','ERP implementation projects')",
+                {"MCB", "IT Security Officer", "Port Louis", 3.3, 50000,
+                        "Ensure cybersecurity of banking systems.",
+                        "• Monitor security logs\n• Conduct audits\n• Incident response",
+                        "Permanent", "2026-09-21", "hr@mcb.mu", "52560004"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('TCS','System Analyst',3.0,'B','System requirement analysis')",
+                {"Emtel", "Web Developer", "Ebene", 3.0, 38000,
+                        "Develop internal web portals.",
+                        "• Frontend development\n• Backend integration\n• Testing",
+                        "6 Months", "2026-09-28", "careers@emtel.mu", "52560005"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Wipro','Programmer',2.9,'A','Software coding tasks')",
+                {"Orange", "IT Support Officer", "Port Louis", 2.5, 30000,
+                        "Provide technical support to customers.",
+                        "• Resolve tickets\n• Install software\n• Network setup",
+                        "6 Months", "2026-09-21", "hr@orange.mu", "52560006"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('TechMahindra','Support Engineer',2.7,'C','Technical support services')",
+                {"Deloitte", "Technology Consultant", "Ebene", 3.4, 52000,
+                        "Consult clients on digital transformation.",
+                        "• Client meetings\n• System analysis\n• Solution implementation",
+                        "1 Year", "2026-10-05", "recruit@deloitte.mu", "52560007"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('HP','IT Technician',2.6,'B','Hardware and software maintenance')",
+                {"PwC", "Business Analyst", "Ebene", 3.1, 47000,
+                        "Bridge IT and business teams.",
+                        "• Requirement gathering\n• Documentation\n• Process modeling",
+                        "Permanent", "2026-09-30", "jobs@pwc.mu", "52560008"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Dell','Infrastructure Engineer',3.1,'A','Server infrastructure')",
+                {"Ceridian", "QA Engineer", "Ebene", 2.9, 36000,
+                        "Test enterprise HR systems.",
+                        "• Manual testing\n• Automation scripts\n• Bug reporting",
+                        "8 Months", "2026-09-22", "hr@ceridian.mu", "52560009"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Cisco','Network Specialist',3.3,'C','Network configuration')",
+                {"Infosys", "System Engineer", "Ebene", 2.7, 35000,
+                        "Support enterprise IT systems.",
+                        "• Server monitoring\n• System updates\n• User support",
+                        "1 Year", "2026-09-24", "careers@infosys.mu", "52560010"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Vodafone','Network Support',2.8,'B','Telecom network support')",
+                /* 20 more different entries */
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Amdocs','Software Tester',2.7,'A','Testing telecom software')",
+                {"Google", "Cloud Engineer", "Remote", 3.5, 90000,
+                        "Work on scalable cloud infrastructure.",
+                        "• Deploy cloud services\n• Optimize performance\n• Security compliance",
+                        "Permanent", "2026-09-21", "jobs@google.com", "52560011"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('EY','IT Auditor',3.2,'C','IT audit services')",
+                {"Amazon", "DevOps Engineer", "Remote", 3.4, 85000,
+                        "Manage CI/CD pipelines.",
+                        "• Automate deployments\n• Monitor systems\n• Infrastructure as Code",
+                        "Permanent", "2026-10-01", "hr@amazon.com", "52560012"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('KPMG','Technology Consultant',3.3,'A','IT consulting services')",
+                {"Microsoft", "Software Engineer", "Remote", 3.6, 95000,
+                        "Develop enterprise software solutions.",
+                        "• Coding\n• Debugging\n• Team collaboration",
+                        "Permanent", "2026-09-21", "careers@microsoft.com", "52560013"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('HSBC','IT Analyst',3.1,'B','Banking systems analysis')",
+                {"SAP", "ERP Consultant", "Ebene", 3.2, 60000,
+                        "Implement SAP solutions for clients.",
+                        "• Configure modules\n• Client training\n• System testing",
+                        "1 Year", "2026-09-29", "jobs@sap.mu", "52560014"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Barclays','Junior Developer',3.0,'C','Financial software')",
+                {"TCS", "System Analyst", "Ebene", 3.0, 45000,
+                        "Analyze and improve IT systems.",
+                        "• Requirement analysis\n• Documentation\n• Testing",
+                        "1 Year", "2026-09-23", "hr@tcs.mu", "52560015"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Samsung','Software Engineer',3.4,'A','Mobile software')",
+                {"Wipro", "Programmer", "Ebene", 2.9, 38000,
+                        "Develop enterprise applications.",
+                        "• Coding\n• Debugging\n• Maintenance",
+                        "6 Months", "2026-09-27", "careers@wipro.mu", "52560016"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Sony','Application Developer',3.2,'B','Application development')",
+                {"KPMG", "IT Auditor", "Ebene", 3.3, 55000,
+                        "Audit IT systems for compliance.",
+                        "• Risk assessment\n• Security review\n• Report writing",
+                        "Permanent", "2026-09-21", "jobs@kpmg.mu", "52560017"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Intel','Embedded Engineer',3.5,'C','Embedded systems')",
+                {"HSBC", "IT Analyst", "Port Louis", 3.1, 50000,
+                        "Support banking IT systems.",
+                        "• System monitoring\n• Incident resolution\n• Reporting",
+                        "Permanent", "2026-09-22", "hr@hsbc.mu", "52560018"},
 
-                "INSERT INTO jobs (company,job_title,min_cgpa,section,description) VALUES ('Nvidia','AI Engineer',3.6,'A','Artificial intelligence systems')"
+                {"Samsung", "Mobile Developer", "Remote", 3.4, 75000,
+                        "Develop Android applications.",
+                        "• UI design\n• API integration\n• Testing",
+                        "1 Year", "2026-10-02", "jobs@samsung.com", "52560019"},
 
+                {"Intel", "Embedded Engineer", "Remote", 3.5, 88000,
+                        "Develop embedded system software.",
+                        "• Firmware coding\n• Hardware testing\n• Optimization",
+                        "Permanent", "2026-09-21", "careers@intel.com", "52560020"},
+
+                /* Remaining 10 simplified but different */
+
+                {"Nvidia", "AI Engineer", "Remote", 3.6, 98000, "AI model development",
+                        "• Train models\n• Optimize performance\n• Deploy AI solutions",
+                        "Permanent", "2026-09-21", "jobs@nvidia.com", "52560021"},
+
+                {"Dell", "Infrastructure Engineer", "Ebene", 3.0, 47000, "Manage IT infrastructure",
+                        "• Server setup\n• Backup management\n• Monitoring",
+                        "1 Year", "2026-09-23", "hr@dell.com", "52560022"},
+
+                {"Cisco", "Network Specialist", "Port Louis", 3.3, 52000, "Enterprise networking",
+                        "• Router configuration\n• Firewall setup\n• Troubleshooting",
+                        "Permanent", "2026-09-21", "careers@cisco.com", "52560023"},
+
+                {"Vodafone", "Telecom Engineer", "Port Louis", 2.8, 39000, "Telecom infrastructure",
+                        "• Tower maintenance\n• Signal monitoring\n• Support",
+                        "9 Months", "2026-09-24", "jobs@vodafone.com", "52560024"},
+
+                {"EY", "Cybersecurity Analyst", "Ebene", 3.4, 60000, "Security monitoring",
+                        "• Threat detection\n• Risk mitigation\n• Reporting",
+                        "Permanent", "2026-09-21", "hr@ey.com", "52560025"},
+
+                {"Sony", "Application Developer", "Remote", 3.2, 72000, "Application systems",
+                        "• Coding\n• Testing\n• Maintenance",
+                        "1 Year", "2026-10-01", "jobs@sony.com", "52560026"},
+
+                {"Barclays", "Junior Developer", "Port Louis", 3.0, 45000, "Banking software",
+                        "• Feature development\n• Bug fixing\n• Documentation",
+                        "Permanent", "2026-09-25", "hr@barclays.com", "52560027"},
+
+                {"HP", "IT Technician", "Ebene", 2.6, 32000, "Hardware maintenance",
+                        "• Device repair\n• OS installation\n• Support",
+                        "6 Months", "2026-09-21", "careers@hp.com", "52560028"},
+
+                {"TechMahindra", "Support Engineer", "Ebene", 2.7, 34000, "Technical support",
+                        "• Ticket handling\n• System monitoring\n• Documentation",
+                        "1 Year", "2026-09-22", "jobs@techmahindra.com", "52560029"},
+
+                {"Amdocs", "Software Tester", "Ebene", 2.8, 36000, "Telecom testing",
+                        "• Test cases\n• Automation\n• Reporting",
+                        "8 Months", "2026-09-21", "hr@amdocs.com", "52560030"}
             };
 
-            for (String s : sql) st.executeUpdate(s);
+            for (Object[] job : jobs) {
+                ps.setString(1, (String) job[0]);
+                ps.setString(2, (String) job[1]);
+                ps.setString(3, (String) job[2]);
+                ps.setDouble(4, ((Number) job[3]).doubleValue());
+                ps.setDouble(5, ((Number) job[4]).doubleValue());
+                ps.setString(6, (String) job[5]);
+                ps.setString(7, (String) job[6]);
+                ps.setString(8, (String) job[7]);
+                ps.setDate(9, Date.valueOf((String) job[8]));
+                ps.setString(10, (String) job[9]);
+                ps.setString(11, (String) job[10]);
+                ps.executeUpdate();
+            }
 
-            System.out.println("Dummy Jobs Inserted");
+            System.out.println("30 Different Dummy Jobs Inserted Successfully");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /* ====================== RETRIEVE ALL JOBS ====================== */
+   /* ====================== RETRIEVE ALL JOBS ====================== */
     public static List<Job> getAllJobs() {
+
         List<Job> jobs = new ArrayList<>();
-        String sql = "SELECT job_id, company, job_title, min_cgpa, section, description FROM jobs";
+
+        String sql = """
+            SELECT job_id, company, job_title, location, min_cgpa, salary,
+                description, key_responsibilities, duration,
+                start_date, contact_email, contact_number
+            FROM jobs
+        """;
 
         try (Connection con = DB.getConnection();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql)) {
 
             while (rs.next()) {
+
                 Job job = new Job(
                         rs.getInt("job_id"),
                         rs.getString("company"),
                         rs.getString("job_title"),
+                        rs.getString("location"),
                         rs.getDouble("min_cgpa"),
-                        rs.getString("section"),
-                        rs.getString("description")
+                        rs.getDouble("salary"),
+                        rs.getString("description"),
+                        rs.getString("key_responsibilities"),
+                        rs.getString("duration"),
+                        rs.getDate("start_date"),
+                        rs.getString("contact_email"),
+                        rs.getString("contact_number")
                 );
+
                 jobs.add(job);
             }
 
