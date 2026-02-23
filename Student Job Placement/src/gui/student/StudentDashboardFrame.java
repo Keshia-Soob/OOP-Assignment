@@ -29,7 +29,7 @@ public class StudentDashboardFrame extends BaseFrame {
         top.setOpaque(false);
         top.add(title, BorderLayout.WEST);
 
-        JPanel cardsPanel = new JPanel(new GridLayout(2, 4, 20, 20));
+        JPanel cardsPanel = new JPanel(new GridLayout(2, 3, 30, 30));
         cardsPanel.setOpaque(false);
         cardsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
@@ -38,7 +38,6 @@ public class StudentDashboardFrame extends BaseFrame {
         cardsPanel.add(createCard("Applications"));
         cardsPanel.add(createCard("Off-Campus Jobs"));
         cardsPanel.add(createCard("Policy Page"));
-        cardsPanel.add(createCard("Logo Page"));
         cardsPanel.add(createCard("Log Out"));
 
         root.add(top, BorderLayout.NORTH);
@@ -84,7 +83,8 @@ public class StudentDashboardFrame extends BaseFrame {
                 break;
 
             case "Policy Page":
-                JOptionPane.showMessageDialog(this, "Policy page not implemented yet.");
+                new StudentPolicyFrame().setVisible(true);
+                this.dispose();
                 break;
 
             case "Logo Page":
@@ -110,7 +110,4 @@ public class StudentDashboardFrame extends BaseFrame {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new StudentDashboardFrame().setVisible(true));
-    }
 }
