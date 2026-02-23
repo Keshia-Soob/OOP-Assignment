@@ -263,8 +263,5 @@ public class JobDetailsFrame extends BaseFrame {
                         "\n\n(Replace this popup with a full details screen later)");
     }
 
-    // Quick test runner (optional). Remove when you run from App.java
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new JobDetailsFrame().setVisible(true));
-    }
+    
 }

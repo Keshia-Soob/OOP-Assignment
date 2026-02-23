@@ -149,7 +149,4 @@ public class OffCampusFormFrame extends BaseFrame {
         dispose();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new OffCampusFormFrame().setVisible(true));
-    }
 }

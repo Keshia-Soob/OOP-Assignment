@@ -82,7 +82,5 @@ public class ApplicationsFrame extends BaseFrame {
         });
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ApplicationsFrame().setVisible(true));
-    }
+    
 }

@@ -1,5 +1,6 @@
 package gui.student;
 
+import gui.auth.LoginFrame;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
 
@@ -20,7 +21,6 @@ public class StudentDashboardFrame extends BaseFrame {
         root.setBackground(Color.WHITE);
         root.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // ---- Top: Title ----
         JLabel title = new JLabel("Student Dashboard");
         title.setFont(new Font("SansSerif", Font.BOLD, 26));
         title.setForeground(new Color(40, 40, 40));
@@ -29,16 +29,16 @@ public class StudentDashboardFrame extends BaseFrame {
         top.setOpaque(false);
         top.add(title, BorderLayout.WEST);
 
-        // ---- Cards Grid ----
-        JPanel cardsPanel = new JPanel(new GridLayout(2, 3, 30, 30));
+        JPanel cardsPanel = new JPanel(new GridLayout(2, 4, 20, 20));
         cardsPanel.setOpaque(false);
-        cardsPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+        cardsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
         cardsPanel.add(createCard("Profile"));
         cardsPanel.add(createCard("Recruitments"));
         cardsPanel.add(createCard("Applications"));
         cardsPanel.add(createCard("Off-Campus Jobs"));
         cardsPanel.add(createCard("Policy Page"));
+        cardsPanel.add(createCard("Logo Page"));
         cardsPanel.add(createCard("Log Out"));
 
         root.add(top, BorderLayout.NORTH);
@@ -84,8 +84,11 @@ public class StudentDashboardFrame extends BaseFrame {
                 break;
 
             case "Policy Page":
-                new StudentPolicyFrame().setVisible(true);
-                this.dispose();
+                JOptionPane.showMessageDialog(this, "Policy page not implemented yet.");
+                break;
+
+            case "Logo Page":
+                JOptionPane.showMessageDialog(this, "Logo page not implemented yet.");
                 break;
 
             case "Log Out":
@@ -97,8 +100,7 @@ public class StudentDashboardFrame extends BaseFrame {
                 );
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    // Replace with LoginFrame if you have one
-                    JOptionPane.showMessageDialog(this, "Logging out...");
+                    new LoginFrame().setVisible(true);
                     this.dispose();
                 }
                 break;
@@ -109,8 +111,6 @@ public class StudentDashboardFrame extends BaseFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() ->
-                new StudentDashboardFrame().setVisible(true)
-        );
+        SwingUtilities.invokeLater(() -> new StudentDashboardFrame().setVisible(true));
     }
 }
