@@ -20,7 +20,7 @@ public abstract class BaseFrame extends JFrame {
         super(windowTitle);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 520);
+        setSize(1000, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
@@ -74,7 +74,7 @@ public abstract class BaseFrame extends JFrame {
                     return;
 
                 case POLICY:
-                    JOptionPane.showMessageDialog(this, "Policy not implemented yet.");
+                    nextFrame = new gui.student.StudentPolicyFrame();
                     return;
 
                 case LOGOUT:

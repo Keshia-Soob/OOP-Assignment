@@ -82,4 +82,8 @@ public class ApplicationsFrame extends BaseFrame {
         });
     }
 
+<<<<<<< HEAD
+=======
+    
+>>>>>>> main
 }

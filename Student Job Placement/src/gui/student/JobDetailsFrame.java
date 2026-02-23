@@ -263,6 +263,10 @@ public class JobDetailsFrame extends BaseFrame {
                         "\n\n(Replace this popup with a full details screen later)");
     }
 
+<<<<<<< HEAD
     // Quick test runner (optional). Remove when you run from App.java
 
+=======
+    
+>>>>>>> main
 }
