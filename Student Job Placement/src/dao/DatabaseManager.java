@@ -1,8 +1,7 @@
 package dao;
 
-// import static dao.JobDAO.insertDummyJobs;
-import gui.auth.DB; // change if your DB class package changes
-import java.sql.Connection;
+import gui.auth.DB;
+import java.sql.Connection; // change if your DB class package changes
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -19,15 +18,24 @@ public class DatabaseManager {
     private static void createUsersTable() {
         String sql = """
             CREATE TABLE IF NOT EXISTS users (
-              user_id INT AUTO_INCREMENT PRIMARY KEY,
-              full_name VARCHAR(100) NOT NULL,
-              course VARCHAR(100),
-              branch VARCHAR(100),
-              section VARCHAR(20),
-              cgpa DECIMAL(3,2),
-              password_hash VARCHAR(255) NOT NULL,
-              role VARCHAR(20) NOT NULL DEFAULT 'STUDENT',
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                user_id INT AUTO_INCREMENT PRIMARY KEY,
+
+                full_name VARCHAR(100) NOT NULL,
+                email VARCHAR(120) NOT NULL UNIQUE,
+                address VARCHAR(255),
+                student_id VARCHAR(30) NOT NULL UNIQUE,
+                contact_number VARCHAR(30),
+
+                course VARCHAR(100),
+                faculty VARCHAR(100),
+
+                cgpa DECIMAL(4,2),
+                level VARCHAR(30),
+                age INT,
+
+                password_hash VARCHAR(255) NOT NULL,
+                role VARCHAR(20) NOT NULL DEFAULT 'STUDENT',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """;
 
