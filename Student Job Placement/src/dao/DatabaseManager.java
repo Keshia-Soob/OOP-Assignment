@@ -1,6 +1,6 @@
 package dao;
 
-import static dao.JobDAO.insertDummyJobs;
+// import static dao.JobDAO.insertDummyJobs;
 import gui.auth.DB; // change if your DB class package changes
 import java.sql.Connection;
 import java.sql.SQLException;
