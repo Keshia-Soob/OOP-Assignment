@@ -58,7 +58,7 @@ public class ApplicationsFrame extends BaseFrame {
                 return false;
             }
         };
-        
+
         table = new JTable(model);
         table.setRowHeight(28);
         table.setFont(new Font("SansSerif", Font.PLAIN, 13));
@@ -82,7 +82,4 @@ public class ApplicationsFrame extends BaseFrame {
         });
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ApplicationsFrame().setVisible(true));
-    }
 }

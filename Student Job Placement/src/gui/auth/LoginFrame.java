@@ -16,17 +16,11 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         super("Login");
 
-        // ✅ Ensure same Look & Feel as RegisterFrame (because RegisterFrame's main() won't run here)
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            SwingUtilities.updateComponentTreeUI(this);
-        } catch (Exception ignored) {}
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 550); // ✅ match RegisterFrame size for consistent feel
+        setSize(900, 550);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(245, 248, 252)); // ✅ match RegisterFrame bg
+        getContentPane().setBackground(new Color(245, 248, 252));
 
         add(buildHeader(), BorderLayout.NORTH);
         add(buildCenter(), BorderLayout.CENTER);
@@ -35,12 +29,12 @@ public class LoginFrame extends JFrame {
 
     private JComponent buildHeader() {
         JPanel header = new JPanel();
-        header.setBackground(new Color(58, 102, 171)); // ✅ match RegisterFrame
+        header.setBackground(new Color(58, 102, 171));
         header.setPreferredSize(new Dimension(1000, 60));
 
         JLabel title = new JLabel("Placement & Job Recruitment System");
         title.setForeground(Color.WHITE);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18)); // ✅ match RegisterFrame
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         header.add(title);
 
         return header;
@@ -50,7 +44,6 @@ public class LoginFrame extends JFrame {
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setBackground(new Color(245, 248, 252));
 
-        // Card like RegisterFrame
         JPanel card = new JPanel(null);
         card.setPreferredSize(new Dimension(650, 380));
         card.setBackground(Color.WHITE);
@@ -117,7 +110,6 @@ public class LoginFrame extends JFrame {
         messageLabel.setBounds(50, 255, 550, 20);
         card.add(messageLabel);
 
-        // Clickable Register link
         JLabel lblRegister = new JLabel("<html>Don't have an account? <u>Register</u></html>");
         lblRegister.setForeground(new Color(58, 102, 171));
         lblRegister.setBounds(225, 290, 300, 25);
@@ -175,14 +167,7 @@ public class LoginFrame extends JFrame {
     }
 
     private void openRegister() {
-        SwingUtilities.invokeLater(() -> {
-            // ✅ Ensure same Look & Feel applied before showing RegisterFrame too
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignored) {}
-
-            new RegisterFrame().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new RegisterFrame().setVisible(true));
         dispose();
     }
 }

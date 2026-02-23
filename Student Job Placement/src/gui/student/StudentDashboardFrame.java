@@ -1,5 +1,6 @@
 package gui.student;
 
+import gui.auth.LoginFrame;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
 
@@ -20,7 +21,6 @@ public class StudentDashboardFrame extends BaseFrame {
         root.setBackground(Color.WHITE);
         root.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // ---- Top: Title ----
         JLabel title = new JLabel("Student Dashboard");
         title.setFont(new Font("SansSerif", Font.BOLD, 26));
         title.setForeground(new Color(40, 40, 40));
@@ -29,7 +29,6 @@ public class StudentDashboardFrame extends BaseFrame {
         top.setOpaque(false);
         top.add(title, BorderLayout.WEST);
 
-        // ---- Cards Grid ----
         JPanel cardsPanel = new JPanel(new GridLayout(2, 4, 20, 20));
         cardsPanel.setOpaque(false);
         cardsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -101,8 +100,7 @@ public class StudentDashboardFrame extends BaseFrame {
                 );
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    // Replace with LoginFrame if you have one
-                    JOptionPane.showMessageDialog(this, "Logging out...");
+                    new LoginFrame().setVisible(true);
                     this.dispose();
                 }
                 break;
@@ -113,8 +111,6 @@ public class StudentDashboardFrame extends BaseFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() ->
-                new StudentDashboardFrame().setVisible(true)
-        );
+        SwingUtilities.invokeLater(() -> new StudentDashboardFrame().setVisible(true));
     }
 }

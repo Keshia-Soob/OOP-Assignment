@@ -97,7 +97,4 @@ public class OffCampusFrame extends BaseFrame {
         });
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new OffCampusFrame().setVisible(true));
-    }
 }

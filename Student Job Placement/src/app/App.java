@@ -3,18 +3,32 @@ package app;
 import dao.DatabaseManager;
 import gui.auth.LoginFrame;
 
+import javax.swing.*;
+
 public class App {
+
+    private static void applyLookAndFeel() {
+        try {
+            // ✅ This is the "default Swing look" you likely liked when running frames individually
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+
+            // Optional: nicer fonts on some systems (safe to keep)
+            // UIManager.put("swing.boldMetal", Boolean.FALSE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
 
-        // ✅ Step 1: Initialize database (create tables if not exist)
+        // 1) Apply L&F ONCE here (GLOBAL)
+        applyLookAndFeel();
+
+        // 2) Initialize database
         DatabaseManager.initializeDatabase();
 
-        // ✅ Step 2: Launch GUI
-        javax.swing.SwingUtilities.invokeLater(() ->
-                new LoginFrame().setVisible(true)
-        );
+        // 3) Launch GUI
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
-
-//Its only job is to: Launch the first window (LoginFrame)

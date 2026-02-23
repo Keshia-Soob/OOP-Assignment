@@ -264,7 +264,5 @@ public class JobDetailsFrame extends BaseFrame {
     }
 
     // Quick test runner (optional). Remove when you run from App.java
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new JobDetailsFrame().setVisible(true));
-    }
+
 }

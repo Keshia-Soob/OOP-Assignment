@@ -304,15 +304,4 @@ public class RecruitmentFrame extends BaseFrame {
         applyFilters();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-
-            RecruitmentFrame frame = new RecruitmentFrame();
-
-            frame.setSize(1000, 650);   // Bigger window
-            frame.setLocationRelativeTo(null); // Center on screen
-            frame.setVisible(true);
-
-        });
-    }
 }
