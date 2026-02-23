@@ -34,7 +34,6 @@ public class SidebarPanel extends JPanel {
         add(createButton("Applications", NavItem.APPLICATIONS));
         add(createButton("Profile", NavItem.PROFILE));
         add(createButton("Off-Campus Jobs", NavItem.OFF_CAMPUS));
-        add(createButton("Policy", NavItem.POLICY));
         add(createButton("Log Out", NavItem.LOGOUT));
     }
 
