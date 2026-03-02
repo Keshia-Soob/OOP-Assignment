@@ -144,6 +144,7 @@ public class Job {
     public String toString() {
         return "Job{" +
                 "jobId=" + jobId +
+                ", keyResponsibilities='" + keyResponsibilities + '\'' +
                 ", company='" + company + '\'' +
                 ", jobTitle='" + jobTitle + '\'' +
                 ", location='" + location + '\'' +
