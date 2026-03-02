@@ -29,8 +29,8 @@ public class RecruitmentFrame extends BaseFrame {
     private final int rowsPerPage = 10;
     private int totalPages;
 
-    private Object[][] allData;
-    private Object[][] filteredData;
+    private List<Job> allJobs;
+    private List<Job> filteredJobs;
 
     public RecruitmentFrame() {
         super("Recruitments", SidebarPanel.NavItem.RECRUITMENTS);
@@ -43,22 +43,17 @@ public class RecruitmentFrame extends BaseFrame {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // ================= TOP CONTAINER (Title + Filters) =================
-        JPanel topContainer = new JPanel();
-        topContainer.setLayout(new BoxLayout(topContainer, BoxLayout.Y_AXIS));
-        topContainer.setBackground(Color.WHITE);
-
+        // ================= TITLE =================
         JLabel titleLabel = new JLabel("Recruitments");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        topContainer.add(titleLabel);
-        topContainer.add(Box.createVerticalStrut(15));
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        topPanel.add(titleLabel, BorderLayout.NORTH);
 
         // ================= FILTER PANEL =================
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         filterPanel.setBackground(Color.WHITE);
-        filterPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         companyFilter = new JComboBox<>();
         jobFilter = new JComboBox<>();
@@ -73,28 +68,16 @@ public class RecruitmentFrame extends BaseFrame {
         filterPanel.add(new JLabel("CGPA:"));
         filterPanel.add(cgpaFilter);
 
-        // ===== Reset Filters Button =====
         JButton resetButton = new JButton("Reset Filters");
         filterPanel.add(resetButton);
         resetButton.addActionListener(e -> resetFilters());
 
-        topContainer.add(filterPanel);
-        mainPanel.add(topContainer, BorderLayout.NORTH);
+        topPanel.add(filterPanel, BorderLayout.CENTER);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // ================= DATA FROM DATABASE =================
-        List<Job> jobsFromDb = JobDAO.getAllJobs();
-
-        allData = new Object[jobsFromDb.size()][4];
-        for (int i = 0; i < jobsFromDb.size(); i++) {
-            Job job = jobsFromDb.get(i);
-            allData[i][0] = job.getCompany();
-            allData[i][1] = job.getJobTitle();
-            allData[i][2] = job.getMinCgpa();
-            allData[i][3] = "View Detail"; // will show description on click
-        }
-
-        filteredData = allData;
-        totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
+        // ================= LOAD DATA =================
+        allJobs = JobDAO.getAllJobs();
+        filteredJobs = new ArrayList<>(allJobs);
 
         populateFilters();
 
@@ -113,29 +96,58 @@ public class RecruitmentFrame extends BaseFrame {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        // ===== Make "View Detail" clickable =====
+        // CLICK HANDLER (FIXED)
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
+
+                if (row == -1) return;
+
                 if (col == 3) {
-                    int modelRow = table.convertRowIndexToModel(row);
-                    Job job = jobsFromDb.get(modelRow + (currentPage - 1) * rowsPerPage);
-                    JOptionPane.showMessageDialog(
-                            RecruitmentFrame.this,
-                            job.getDescription(),
-                            job.getCompany() + " - " + job.getJobTitle(),
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
+
+                    int actualIndex = (currentPage - 1) * rowsPerPage + row;
+
+                    if (actualIndex >= 0 && actualIndex < filteredJobs.size()) {
+
+                        Job job = filteredJobs.get(actualIndex);
+
+                        String details =
+                                "Key Responsibilities:\n" + job.getKeyResponsibilities() + "\n\n" +
+                                "Location:\n" + job.getLocation() + "\n\n" +
+                                "Salary:\n" + job.getSalary() + "\n\n" +
+                                "Duration:\n" + job.getDuration() + "\n\n" +
+                                "Contact Email:\n" + job.getContactEmail() + "\n\n" +
+                                "Contact Number:\n" + job.getContactNumber() + "\n\n" +
+                                "Starting Date:\n" + job.getStartDate();
+
+                        int result = JOptionPane.showOptionDialog(
+                                RecruitmentFrame.this,
+                                details,
+                                job.getCompany() + " - " + job.getJobTitle(),
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                new Object[]{"Apply"},   // <-- THIS replaces OK
+                                "Apply"
+                        );
+                       if (result == 0) {
+                            // User clicked APPLY
+                            JOptionPane.showMessageDialog(
+                                    RecruitmentFrame.this,
+                                    "Application submitted successfully!"
+                            );
+                        } 
+                    }
                 }
             }
         });
 
-        // ================= TABLE PANEL (NO SCROLLBAR) =================
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
-
+        
         // Fix table height for pagination
         table.setPreferredScrollableViewportSize(new Dimension(800, 300));
 
@@ -183,7 +195,6 @@ public class RecruitmentFrame extends BaseFrame {
         companyFilter.addItem("All");
         jobFilter.addItem("All");
 
-        // CGPA Ranges
         cgpaFilter.addItem("All");
         cgpaFilter.addItem("0-1");
         cgpaFilter.addItem("1-2");
@@ -199,9 +210,9 @@ public class RecruitmentFrame extends BaseFrame {
         Set<String> companies = new HashSet<>();
         Set<String> jobs = new HashSet<>();
 
-        for (Object[] row : allData) {
-            companies.add(row[0].toString());
-            jobs.add(row[1].toString());
+        for (Job job : allJobs) {
+            companies.add(job.getCompany());
+            jobs.add(job.getJobTitle());
         }
 
         for (String c : companies)
@@ -222,79 +233,88 @@ public class RecruitmentFrame extends BaseFrame {
         String selectedJob = jobFilter.getSelectedItem().toString();
         String selectedCgpa = cgpaFilter.getSelectedItem().toString();
 
-        List<Object[]> temp = new ArrayList<>();
+        filteredJobs.clear();
 
-        for (Object[] row : allData) {
+        for (Job job : allJobs) {
 
             boolean match = true;
 
-            double cgpa = Double.parseDouble(row[2].toString());
-
-            // Company filter
             if (!selectedCompany.equals("All") &&
-                    !row[0].toString().equals(selectedCompany))
+                    !job.getCompany().equals(selectedCompany))
                 match = false;
 
-            // Job filter
             if (!selectedJob.equals("All") &&
-                    !row[1].toString().equals(selectedJob))
+                    !job.getJobTitle().equals(selectedJob))
                 match = false;
 
-            // CGPA Range filter
             if (!selectedCgpa.equals("All")) {
 
                 String[] range = selectedCgpa.split("-");
-
                 double min = Double.parseDouble(range[0]);
                 double max = Double.parseDouble(range[1]);
 
-                if (cgpa < min || cgpa >= max)
+                if (job.getMinCgpa() < min || job.getMinCgpa() >= max)
                     match = false;
             }
 
             if (match)
-                temp.add(row);
+                filteredJobs.add(job);
         }
 
-        filteredData = temp.toArray(Object[][]::new);
-
         currentPage = 1;
-
-        totalPages = (filteredData.length == 0)
-                ? 1
-                : (int) Math.ceil((double) filteredData.length / rowsPerPage);
-
         updateTable();
     }
 
     // ================= UPDATE TABLE =================
     private void updateTable() {
-        model.setRowCount(0);
 
-        if (filteredData == null || filteredData.length == 0) {
-            pageLabel.setText("No records found");
-            btnPrevious.setEnabled(false);
-            btnNext.setEnabled(false);
-            return;
-        }
+    model.setRowCount(0);
 
-        totalPages = (int) Math.ceil((double) filteredData.length / rowsPerPage);
+    // If no records
+    if (filteredJobs == null || filteredJobs.isEmpty()) {
 
-        if (currentPage < 1) currentPage = 1;
-        if (currentPage > totalPages) currentPage = totalPages;
+        currentPage = 1;
+        totalPages = 1;
 
-        int start = (currentPage - 1) * rowsPerPage;
-        int end = Math.min(start + rowsPerPage, filteredData.length);
-
-        for (int i = start; i < end; i++) {
-            model.addRow(filteredData[i]);
-        }
-
-        pageLabel.setText("Page " + currentPage + " of " + totalPages);
-
-        btnPrevious.setEnabled(currentPage > 1);
-        btnNext.setEnabled(currentPage < totalPages);
+        pageLabel.setText("No records found");
+        btnPrevious.setEnabled(false);
+        btnNext.setEnabled(false);
+        return;
     }
+
+    // Calculate total pages properly
+    totalPages = (int) Math.ceil((double) filteredJobs.size() / rowsPerPage);
+
+    // Safety guards
+    if (totalPages <= 0)
+        totalPages = 1;
+
+    if (currentPage < 1)
+        currentPage = 1;
+
+    if (currentPage > totalPages)
+        currentPage = totalPages;
+
+    int start = (currentPage - 1) * rowsPerPage;
+    int end = Math.min(start + rowsPerPage, filteredJobs.size());
+
+    for (int i = start; i < end; i++) {
+
+        Job job = filteredJobs.get(i);
+
+        model.addRow(new Object[]{
+                job.getCompany(),
+                job.getJobTitle(),
+                job.getMinCgpa(),
+                "View Detail"
+        });
+    }
+
+    pageLabel.setText("Page " + currentPage + " of " + totalPages);
+
+    btnPrevious.setEnabled(currentPage > 1);
+    btnNext.setEnabled(currentPage < totalPages);
+}
 
     // ================= RESET FILTERS =================
     private void resetFilters() {
@@ -303,5 +323,4 @@ public class RecruitmentFrame extends BaseFrame {
         cgpaFilter.setSelectedIndex(0);
         applyFilters();
     }
-
 }
