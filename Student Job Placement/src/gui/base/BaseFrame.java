@@ -1,10 +1,9 @@
 package gui.base;
 
-import service.AuthService;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import service.AuthService;
 
 public abstract class BaseFrame extends JFrame {
 
@@ -69,8 +68,8 @@ public abstract class BaseFrame extends JFrame {
                     break;
 
                 case PROFILE:
-                    JOptionPane.showMessageDialog(this, "Profile not implemented yet.");
-                    return;
+                    nextFrame = new gui.student.ProfileFrame();
+                    break;
 
                 case POLICY:
                     nextFrame = new gui.student.StudentPolicyFrame();
