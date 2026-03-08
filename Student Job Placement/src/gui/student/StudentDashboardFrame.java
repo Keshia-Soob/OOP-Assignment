@@ -3,12 +3,11 @@ package gui.student;
 import gui.auth.LoginFrame;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
-import service.AuthService;
-import util.Session;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import service.AuthService;
+import util.Session;
 
 public class StudentDashboardFrame extends BaseFrame {
 
@@ -78,7 +77,8 @@ public class StudentDashboardFrame extends BaseFrame {
                 break;
 
             case "Profile":
-                JOptionPane.showMessageDialog(this, "Profile page not implemented yet.");
+                new ProfileFrame().setVisible(true);   
+                dispose();
                 break;
 
             case "Off-Campus Jobs":
