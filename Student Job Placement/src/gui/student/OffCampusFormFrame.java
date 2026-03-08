@@ -2,6 +2,8 @@ package gui.student;
 
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
+import service.OffCampusService;
+import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,9 +12,9 @@ import java.awt.*;
 
 public class OffCampusFormFrame extends BaseFrame {
 
-    private JTextField txtCompany;
-    private JTextField txtJobTitle;
-    private JTextField txtDateApplied;
+    private JTextField     txtCompany;
+    private JTextField     txtJobTitle;
+    private JTextField     txtNotes;
     private JComboBox<String> comboStatus;
 
     public OffCampusFormFrame() {
@@ -43,58 +45,44 @@ public class OffCampusFormFrame extends BaseFrame {
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets  = new Insets(8, 10, 8, 10);
+        gbc.fill    = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
+        gbc.gridx   = 0;
 
         // Company
-        gbc.gridx = 0; gbc.gridy = 0;
-        card.add(new JLabel("Company"), gbc);
-
+        gbc.gridy = 0; card.add(makeLabel("Company *"), gbc);
         txtCompany = new JTextField();
         styleField(txtCompany);
-        gbc.gridy = 1;
-        card.add(txtCompany, gbc);
+        gbc.gridy = 1; card.add(txtCompany, gbc);
 
         // Job Title
-        gbc.gridy = 2;
-        card.add(new JLabel("Job Title"), gbc);
-
+        gbc.gridy = 2; card.add(makeLabel("Job Title *"), gbc);
         txtJobTitle = new JTextField();
         styleField(txtJobTitle);
-        gbc.gridy = 3;
-        card.add(txtJobTitle, gbc);
-
-        // Date Applied
-        gbc.gridy = 4;
-        card.add(new JLabel("Date Applied"), gbc);
-
-        txtDateApplied = new JTextField();
-        txtDateApplied.setToolTipText("Use format YYYY-MM-DD");
-        styleField(txtDateApplied);
-        gbc.gridy = 5;
-        card.add(txtDateApplied, gbc);
+        gbc.gridy = 3; card.add(txtJobTitle, gbc);
 
         // Status
-        gbc.gridy = 6;
-        card.add(new JLabel("Status"), gbc);
-
+        gbc.gridy = 4; card.add(makeLabel("Status"), gbc);
         comboStatus = new JComboBox<>(new String[]{"Applied", "Shortlisted", "Selected", "Rejected"});
-        comboStatus.setPreferredSize(new Dimension(1, 32));
         styleField(comboStatus);
-        gbc.gridy = 7;
-        card.add(comboStatus, gbc);
+        gbc.gridy = 5; card.add(comboStatus, gbc);
 
-        // ---- Buttons Row ----
+        // Notes
+        gbc.gridy = 6; card.add(makeLabel("Notes (optional)"), gbc);
+        txtNotes = new JTextField();
+        styleField(txtNotes);
+        gbc.gridy = 7; card.add(txtNotes, gbc);
+
+        // ---- Buttons ----
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttons.setOpaque(false);
 
         JButton btnCancel = new JButton("Cancel");
-        JButton btnSave = new JButton("Save");
+        JButton btnSave   = new JButton("Save");
 
         btnCancel.setFocusPainted(false);
         btnSave.setFocusPainted(false);
-
         btnSave.setBackground(new Color(58, 102, 171));
         btnSave.setForeground(Color.WHITE);
         btnSave.setOpaque(true);
@@ -110,11 +98,17 @@ public class OffCampusFormFrame extends BaseFrame {
         centerWrap.setOpaque(false);
         centerWrap.add(card, BorderLayout.NORTH);
 
-        root.add(top, BorderLayout.NORTH);
+        root.add(top,        BorderLayout.NORTH);
         root.add(centerWrap, BorderLayout.CENTER);
-        root.add(buttons, BorderLayout.SOUTH);
+        root.add(buttons,    BorderLayout.SOUTH);
 
         return root;
+    }
+
+    private JLabel makeLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        return lbl;
     }
 
     private void styleField(JComponent field) {
@@ -124,22 +118,26 @@ public class OffCampusFormFrame extends BaseFrame {
     }
 
     private void onSave() {
-        String company = txtCompany.getText().trim();
+        String company  = txtCompany.getText().trim();
         String jobTitle = txtJobTitle.getText().trim();
-        String dateApplied = txtDateApplied.getText().trim();
-        String status = (String) comboStatus.getSelectedItem();
+        String status   = (String) comboStatus.getSelectedItem();
+        String notes    = txtNotes.getText().trim();
 
-        if (company.isEmpty() || jobTitle.isEmpty() || dateApplied.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill all required fields.");
+        // Use the logged-in user's ID from the session
+        int userId = Session.getUserId();
+
+        String error = OffCampusService.add(userId, company, jobTitle, status, notes);
+
+        if (error != null) {
+            JOptionPane.showMessageDialog(this, error, "Validation Error",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         JOptionPane.showMessageDialog(this,
-                "Saved (demo)\n\nCompany: " + company +
-                        "\nJob Title: " + jobTitle +
-                        "\nDate Applied: " + dateApplied +
-                        "\nStatus: " + status
-        );
+                "Off-campus job saved successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
 
         goBack();
     }
@@ -148,5 +146,4 @@ public class OffCampusFormFrame extends BaseFrame {
         new OffCampusFrame().setVisible(true);
         dispose();
     }
-
 }

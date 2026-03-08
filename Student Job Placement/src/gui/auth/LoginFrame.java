@@ -1,6 +1,8 @@
 package gui.auth;
 
-import gui.student.ApplicationsFrame;   // temporary (until you have StudentDashboardFrame)
+import gui.student.StudentDashboardFrame;
+import service.AuthService;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -9,9 +11,9 @@ import java.awt.event.MouseEvent;
 
 public class LoginFrame extends JFrame {
 
-    private JTextField emailField;
+    private JTextField     emailField;
     private JPasswordField passwordField;
-    private JLabel messageLabel;
+    private JLabel         messageLabel;
 
     public LoginFrame() {
         super("Login");
@@ -27,6 +29,8 @@ public class LoginFrame extends JFrame {
         add(buildFooter(), BorderLayout.SOUTH);
     }
 
+    // ====================== HEADER ======================
+
     private JComponent buildHeader() {
         JPanel header = new JPanel();
         header.setBackground(new Color(58, 102, 171));
@@ -40,6 +44,8 @@ public class LoginFrame extends JFrame {
         return header;
     }
 
+    // ====================== CENTER ======================
+
     private JComponent buildCenter() {
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setBackground(new Color(245, 248, 252));
@@ -52,12 +58,14 @@ public class LoginFrame extends JFrame {
                 new EmptyBorder(20, 30, 20, 30)
         ));
 
+        // Heading
         JLabel heading = new JLabel("Login");
         heading.setFont(new Font("Segoe UI", Font.BOLD, 22));
         heading.setBounds(280, 10, 200, 30);
         card.add(heading);
 
-        JLabel emailLbl = new JLabel("Email / Username");
+        // Email / Student ID label + field
+        JLabel emailLbl = new JLabel("Email / Student ID");
         emailLbl.setBounds(50, 60, 200, 20);
         emailLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         card.add(emailLbl);
@@ -67,6 +75,7 @@ public class LoginFrame extends JFrame {
         styleField(emailField);
         card.add(emailField);
 
+        // Password label + field
         JLabel passLbl = new JLabel("Password");
         passLbl.setBounds(50, 125, 200, 20);
         passLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -75,8 +84,11 @@ public class LoginFrame extends JFrame {
         passwordField = new JPasswordField();
         passwordField.setBounds(50, 145, 550, 35);
         styleField(passwordField);
+        // Allow pressing Enter to log in
+        passwordField.addActionListener(e -> handleLogin());
         card.add(passwordField);
 
+        // Login button
         JButton loginBtn = new JButton("Log In");
         loginBtn.setBounds(50, 205, 550, 45);
 
@@ -92,36 +104,28 @@ public class LoginFrame extends JFrame {
         loginBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         loginBtn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                loginBtn.setBackground(hoverColor);
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                loginBtn.setBackground(normalColor);
-            }
+            @Override public void mouseEntered(MouseEvent e) { loginBtn.setBackground(hoverColor); }
+            @Override public void mouseExited (MouseEvent e) { loginBtn.setBackground(normalColor); }
         });
 
         loginBtn.addActionListener(e -> handleLogin());
         card.add(loginBtn);
 
+        // Error message label
         messageLabel = new JLabel(" ", SwingConstants.CENTER);
         messageLabel.setForeground(new Color(180, 0, 0));
+        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         messageLabel.setBounds(50, 255, 550, 20);
         card.add(messageLabel);
 
+        // Register link
         JLabel lblRegister = new JLabel("<html>Don't have an account? <u>Register</u></html>");
         lblRegister.setForeground(new Color(58, 102, 171));
         lblRegister.setBounds(225, 290, 300, 25);
         lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         lblRegister.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                openRegister();
-            }
+            @Override public void mouseClicked(MouseEvent e) { openRegister(); }
         });
-
         card.add(lblRegister);
 
         centerPanel.add(card);
@@ -133,6 +137,8 @@ public class LoginFrame extends JFrame {
         field.setBorder(new javax.swing.border.LineBorder(new Color(200, 210, 225), 1, true));
     }
 
+    // ====================== FOOTER ======================
+
     private JComponent buildFooter() {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -141,30 +147,44 @@ public class LoginFrame extends JFrame {
         JLabel info = new JLabel("Student Job Recruitment System");
         info.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         info.setForeground(new Color(90, 90, 90));
-
         footer.add(info, BorderLayout.WEST);
+
         return footer;
     }
 
-    private void handleLogin() {
-        String email = emailField.getText().trim();
-        String pass = new String(passwordField.getPassword());
+    // ====================== LOGIN LOGIC ======================
 
-        if (email.isEmpty() || pass.isEmpty()) {
-            messageLabel.setText("Please enter email and password.");
+    private void handleLogin() {
+        String identifier = emailField.getText().trim();
+        String password   = new String(passwordField.getPassword());
+
+        // Basic empty-field guard (AuthService also checks, but this gives instant UI feedback)
+        if (identifier.isEmpty() || password.isEmpty()) {
+            messageLabel.setText("Please enter your email / student ID and password.");
             return;
         }
 
-        // TODO: Replace with DB check
-        boolean success = true;
+        // Disable button while checking to prevent double-clicks
+        messageLabel.setText("Checking credentials...");
+        messageLabel.setForeground(new Color(80, 80, 80));
 
-        if (success) {
-            SwingUtilities.invokeLater(() -> new ApplicationsFrame().setVisible(true));
-            dispose();
+        String error = AuthService.login(identifier, password);
+
+        if (error == null) {
+            // Success — Session now holds the logged-in user
+            SwingUtilities.invokeLater(() -> {
+                new StudentDashboardFrame().setVisible(true);
+                dispose();
+            });
         } else {
-            messageLabel.setText("Invalid login details.");
+            messageLabel.setForeground(new Color(180, 0, 0));
+            messageLabel.setText(error);
+            passwordField.setText("");        // clear password on failure
+            passwordField.requestFocus();
         }
     }
+
+    // ====================== REGISTER NAV ======================
 
     private void openRegister() {
         SwingUtilities.invokeLater(() -> new RegisterFrame().setVisible(true));

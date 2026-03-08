@@ -3,6 +3,8 @@ package gui.student;
 import gui.auth.LoginFrame;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
+import service.AuthService;
+import util.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -21,7 +23,12 @@ public class StudentDashboardFrame extends BaseFrame {
         root.setBackground(Color.WHITE);
         root.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel title = new JLabel("Student Dashboard");
+        // Greeting with the logged-in user's name
+        String name = Session.getCurrentUser() != null
+                ? Session.getCurrentUser().getFullName()
+                : "Student";
+
+        JLabel title = new JLabel("Welcome, " + name);
         title.setFont(new Font("SansSerif", Font.BOLD, 26));
         title.setForeground(new Color(40, 40, 40));
 
@@ -47,31 +54,27 @@ public class StudentDashboardFrame extends BaseFrame {
     }
 
     private JButton createCard(String text) {
-
         JButton card = new JButton(text);
         card.setFont(new Font("SansSerif", Font.BOLD, 15));
         card.setFocusPainted(false);
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
         card.setPreferredSize(new Dimension(180, 110));
-
         card.addActionListener(e -> handleNavigation(text));
-
         return card;
     }
 
     private void handleNavigation(String destination) {
-
         switch (destination) {
 
             case "Recruitments":
                 new RecruitmentFrame().setVisible(true);
-                this.dispose();
+                dispose();
                 break;
 
             case "Applications":
                 new ApplicationsFrame().setVisible(true);
-                this.dispose();
+                dispose();
                 break;
 
             case "Profile":
@@ -79,16 +82,13 @@ public class StudentDashboardFrame extends BaseFrame {
                 break;
 
             case "Off-Campus Jobs":
-                JOptionPane.showMessageDialog(this, "Off-Campus Jobs page not implemented yet.");
+                new OffCampusFrame().setVisible(true);
+                dispose();
                 break;
 
             case "Policy Page":
                 new StudentPolicyFrame().setVisible(true);
-                this.dispose();
-                break;
-
-            case "Logo Page":
-                JOptionPane.showMessageDialog(this, "Logo page not implemented yet.");
+                dispose();
                 break;
 
             case "Log Out":
@@ -98,10 +98,10 @@ public class StudentDashboardFrame extends BaseFrame {
                         "Confirm Logout",
                         JOptionPane.YES_NO_OPTION
                 );
-
                 if (confirm == JOptionPane.YES_OPTION) {
+                    AuthService.logout();          // clears Session
                     new LoginFrame().setVisible(true);
-                    this.dispose();
+                    dispose();
                 }
                 break;
 
@@ -109,5 +109,4 @@ public class StudentDashboardFrame extends BaseFrame {
                 JOptionPane.showMessageDialog(this, "Page not implemented.");
         }
     }
-
 }

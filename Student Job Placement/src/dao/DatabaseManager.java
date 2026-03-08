@@ -4,6 +4,7 @@ import gui.auth.DB;
 import java.sql.Connection;
 import java.sql.SQLException; // change if your DB class package changes
 import java.sql.Statement;
+// import static dao.JobDAO.insertDummyJobs;
 
 public class DatabaseManager {
 
@@ -12,7 +13,7 @@ public class DatabaseManager {
         createJobsTable();
         createApplicationsTable();
         createOffCampusApplicationsTable(); // optional but matches your UI button
-        //insertDummyJobs(); // optional but helps testing
+        // insertDummyJobs(); // optional but helps testing
     }
 
     private static void createUsersTable() {
