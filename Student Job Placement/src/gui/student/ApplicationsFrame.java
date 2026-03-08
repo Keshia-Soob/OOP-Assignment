@@ -2,16 +2,19 @@ package gui.student;
 
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
+import model.Application;
+import service.ApplicationService;
+import util.Session;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 
 public class ApplicationsFrame extends BaseFrame {
 
-    private JTable table;
+    private JTable            table;
     private DefaultTableModel model;
-
     private JComboBox<String> filterCombo;
 
     public ApplicationsFrame() {
@@ -39,26 +42,19 @@ public class ApplicationsFrame extends BaseFrame {
         JLabel filterLabel = new JLabel("Filter:");
         filterLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
 
-        filterCombo = new JComboBox<>(new String[] {
-                "All", "Applied", "Shortlisted", "Selected", "Rejected"
-        });
+        filterCombo = new JComboBox<>(new String[]{"All", "Applied", "Shortlisted", "Selected", "Rejected"});
         filterCombo.setPreferredSize(new Dimension(140, 28));
 
         filterPanel.add(filterLabel);
         filterPanel.add(filterCombo);
-
         top.add(filterPanel, BorderLayout.EAST);
 
-        // ---- Table panel ----
+        // ---- Table ----
         model = new DefaultTableModel(
-                new Object[]{"Company", "Job Title", "Date Applied", "Status"}, 0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
+                new Object[]{"Company", "Job Title", "Date Applied", "Status"}, 0) {
+            @Override public boolean isCellEditable(int row, int col) { return false; }
         };
-        
+
         table = new JTable(model);
         table.setRowHeight(28);
         table.setFont(new Font("SansSerif", Font.PLAIN, 13));
@@ -67,20 +63,45 @@ public class ApplicationsFrame extends BaseFrame {
         JScrollPane sp = new JScrollPane(table);
         sp.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
 
-        // ---- Add sections ----
         root.add(top, BorderLayout.NORTH);
-        root.add(sp, BorderLayout.CENTER);
+        root.add(sp,  BorderLayout.CENTER);
 
-        wireLocalActions();
+        // ---- Load data on open ----
+        loadApplications("All");
+
+        // ---- Filter combo listener ----
+        filterCombo.addActionListener(e ->
+                loadApplications((String) filterCombo.getSelectedItem()));
 
         return root;
     }
 
-    private void wireLocalActions() {
-        filterCombo.addActionListener(e -> {
-            // Later: reload from DB with WHERE status = ?
-        });
-    }
+    /**
+     * Fetch the logged-in user's applications from the DB,
+     * optionally filtering by status, and populate the table.
+     */
+    private void loadApplications(String statusFilter) {
+        model.setRowCount(0);
 
-    
+        int userId = Session.getUserId();
+        List<Application> apps = ApplicationService.getApplications(userId);
+
+        for (Application app : apps) {
+
+            // Skip rows that don't match the selected filter
+            if (!"All".equals(statusFilter) &&
+                !app.getStatus().equalsIgnoreCase(statusFilter)) continue;
+
+            String dateStr = (app.getDateApplied() != null)
+                    ? app.getDateApplied().toString().substring(0, 10)  // yyyy-MM-dd
+                    : "-";
+
+            model.addRow(new Object[]{
+                    app.getCompany(),
+                    app.getJobTitle(),
+                    dateStr,
+                    app.getStatus()
+            });
+        }
+    }
 }

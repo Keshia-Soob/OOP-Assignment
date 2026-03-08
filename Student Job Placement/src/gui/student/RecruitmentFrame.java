@@ -3,6 +3,9 @@ package gui.student;
 import dao.JobDAO;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
+import service.ApplicationService;
+import util.Session;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -56,15 +59,13 @@ public class RecruitmentFrame extends BaseFrame {
         filterPanel.setBackground(Color.WHITE);
 
         companyFilter = new JComboBox<>();
-        jobFilter = new JComboBox<>();
-        cgpaFilter = new JComboBox<>();
+        jobFilter     = new JComboBox<>();
+        cgpaFilter    = new JComboBox<>();
 
         filterPanel.add(new JLabel("Company:"));
         filterPanel.add(companyFilter);
-
         filterPanel.add(new JLabel("Job Title:"));
         filterPanel.add(jobFilter);
-
         filterPanel.add(new JLabel("CGPA:"));
         filterPanel.add(cgpaFilter);
 
@@ -76,7 +77,7 @@ public class RecruitmentFrame extends BaseFrame {
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // ================= LOAD DATA =================
-        allJobs = JobDAO.getAllJobs();
+        allJobs      = JobDAO.getAllJobs();
         filteredJobs = new ArrayList<>(allJobs);
 
         populateFilters();
@@ -86,9 +87,7 @@ public class RecruitmentFrame extends BaseFrame {
 
         model = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
 
         table = new JTable(model);
@@ -96,50 +95,59 @@ public class RecruitmentFrame extends BaseFrame {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        // CLICK HANDLER (FIXED)
+        // ================= CLICK HANDLER =================
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
 
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
+                if (row == -1 || col != 3) return;
 
-                if (row == -1) return;
+                int actualIndex = (currentPage - 1) * rowsPerPage + row;
+                if (actualIndex < 0 || actualIndex >= filteredJobs.size()) return;
 
-                if (col == 3) {
+                Job job = filteredJobs.get(actualIndex);
 
-                    int actualIndex = (currentPage - 1) * rowsPerPage + row;
+                String details =
+                        "Key Responsibilities:\n" + job.getKeyResponsibilities() + "\n\n" +
+                        "Location:\n"             + job.getLocation()            + "\n\n" +
+                        "Salary:\n"               + job.getSalary()              + "\n\n" +
+                        "Duration:\n"             + job.getDuration()            + "\n\n" +
+                        "Contact Email:\n"        + job.getContactEmail()        + "\n\n" +
+                        "Contact Number:\n"       + job.getContactNumber()       + "\n\n" +
+                        "Starting Date:\n"        + job.getStartDate();
 
-                    if (actualIndex >= 0 && actualIndex < filteredJobs.size()) {
+                int result = JOptionPane.showOptionDialog(
+                        RecruitmentFrame.this,
+                        details,
+                        job.getCompany() + " - " + job.getJobTitle(),
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        new Object[]{"Apply", "Close"},
+                        "Apply"
+                );
 
-                        Job job = filteredJobs.get(actualIndex);
+                if (result == 0) {
+                    // ---- APPLY: save to DB via ApplicationService ----
+                    int userId  = Session.getUserId();
+                    boolean ok  = ApplicationService.apply(userId, job.getJobId());
 
-                        String details =
-                                "Key Responsibilities:\n" + job.getKeyResponsibilities() + "\n\n" +
-                                "Location:\n" + job.getLocation() + "\n\n" +
-                                "Salary:\n" + job.getSalary() + "\n\n" +
-                                "Duration:\n" + job.getDuration() + "\n\n" +
-                                "Contact Email:\n" + job.getContactEmail() + "\n\n" +
-                                "Contact Number:\n" + job.getContactNumber() + "\n\n" +
-                                "Starting Date:\n" + job.getStartDate();
-
-                        int result = JOptionPane.showOptionDialog(
+                    if (ok) {
+                        JOptionPane.showMessageDialog(
                                 RecruitmentFrame.this,
-                                details,
-                                job.getCompany() + " - " + job.getJobTitle(),
-                                JOptionPane.DEFAULT_OPTION,
-                                JOptionPane.INFORMATION_MESSAGE,
-                                null,
-                                new Object[]{"Apply"},   // <-- THIS replaces OK
-                                "Apply"
+                                "Application submitted successfully!\nYou can view it in the Applications section.",
+                                "Applied",
+                                JOptionPane.INFORMATION_MESSAGE
                         );
-                       if (result == 0) {
-                            // User clicked APPLY
-                            JOptionPane.showMessageDialog(
-                                    RecruitmentFrame.this,
-                                    "Application submitted successfully!"
-                            );
-                        } 
+                    } else {
+                        JOptionPane.showMessageDialog(
+                                RecruitmentFrame.this,
+                                "You have already applied for this position.",
+                                "Already Applied",
+                                JOptionPane.WARNING_MESSAGE
+                        );
                     }
                 }
             }
@@ -147,13 +155,9 @@ public class RecruitmentFrame extends BaseFrame {
 
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
-        
-        // Fix table height for pagination
         table.setPreferredScrollableViewportSize(new Dimension(800, 300));
-
         tablePanel.add(table.getTableHeader(), BorderLayout.NORTH);
         tablePanel.add(table, BorderLayout.CENTER);
-
         mainPanel.add(tablePanel, BorderLayout.CENTER);
 
         // ================= PAGINATION =================
@@ -161,31 +165,18 @@ public class RecruitmentFrame extends BaseFrame {
         paginationPanel.setBackground(Color.WHITE);
 
         btnPrevious = new JButton("Previous");
-        btnNext = new JButton("Next");
-        pageLabel = new JLabel();
+        btnNext     = new JButton("Next");
+        pageLabel   = new JLabel();
 
         paginationPanel.add(btnPrevious);
         paginationPanel.add(pageLabel);
         paginationPanel.add(btnNext);
-
         mainPanel.add(paginationPanel, BorderLayout.SOUTH);
 
-        btnPrevious.addActionListener(e -> {
-            if (currentPage > 1) {
-                currentPage--;
-                updateTable();
-            }
-        });
-
-        btnNext.addActionListener(e -> {
-            if (currentPage < totalPages) {
-                currentPage++;
-                updateTable();
-            }
-        });
+        btnPrevious.addActionListener(e -> { if (currentPage > 1)          { currentPage--; updateTable(); } });
+        btnNext    .addActionListener(e -> { if (currentPage < totalPages)  { currentPage++; updateTable(); } });
 
         updateTable();
-
         return mainPanel;
     }
 
@@ -196,69 +187,42 @@ public class RecruitmentFrame extends BaseFrame {
         jobFilter.addItem("All");
 
         cgpaFilter.addItem("All");
-        cgpaFilter.addItem("0-1");
-        cgpaFilter.addItem("1-2");
-        cgpaFilter.addItem("2-3");
-        cgpaFilter.addItem("3-4");
-        cgpaFilter.addItem("4-5");
-        cgpaFilter.addItem("5-6");
-        cgpaFilter.addItem("6-7");
-        cgpaFilter.addItem("7-8");
-        cgpaFilter.addItem("8-9");
-        cgpaFilter.addItem("9-10");
+        for (String r : new String[]{"0-1","1-2","2-3","3-4","4-5","5-6","6-7","7-8","8-9","9-10"})
+            cgpaFilter.addItem(r);
 
-        Set<String> companies = new HashSet<>();
-        Set<String> jobs = new HashSet<>();
-
-        for (Job job : allJobs) {
-            companies.add(job.getCompany());
-            jobs.add(job.getJobTitle());
-        }
-
-        for (String c : companies)
-            companyFilter.addItem(c);
-
-        for (String j : jobs)
-            jobFilter.addItem(j);
+        Set<String> companies = new LinkedHashSet<>();
+        Set<String> jobs      = new LinkedHashSet<>();
+        for (Job job : allJobs) { companies.add(job.getCompany()); jobs.add(job.getJobTitle()); }
+        companies.forEach(companyFilter::addItem);
+        jobs     .forEach(jobFilter::addItem);
 
         companyFilter.addActionListener(e -> applyFilters());
-        jobFilter.addActionListener(e -> applyFilters());
-        cgpaFilter.addActionListener(e -> applyFilters());
+        jobFilter    .addActionListener(e -> applyFilters());
+        cgpaFilter   .addActionListener(e -> applyFilters());
     }
 
     // ================= APPLY FILTERS =================
     private void applyFilters() {
 
-        String selectedCompany = companyFilter.getSelectedItem().toString();
-        String selectedJob = jobFilter.getSelectedItem().toString();
-        String selectedCgpa = cgpaFilter.getSelectedItem().toString();
+        String selCompany = companyFilter.getSelectedItem().toString();
+        String selJob     = jobFilter.getSelectedItem().toString();
+        String selCgpa    = cgpaFilter.getSelectedItem().toString();
 
         filteredJobs.clear();
 
         for (Job job : allJobs) {
-
             boolean match = true;
 
-            if (!selectedCompany.equals("All") &&
-                    !job.getCompany().equals(selectedCompany))
-                match = false;
-
-            if (!selectedJob.equals("All") &&
-                    !job.getJobTitle().equals(selectedJob))
-                match = false;
-
-            if (!selectedCgpa.equals("All")) {
-
-                String[] range = selectedCgpa.split("-");
+            if (!selCompany.equals("All") && !job.getCompany().equals(selCompany))   match = false;
+            if (!selJob    .equals("All") && !job.getJobTitle().equals(selJob))      match = false;
+            if (!selCgpa   .equals("All")) {
+                String[] range = selCgpa.split("-");
                 double min = Double.parseDouble(range[0]);
                 double max = Double.parseDouble(range[1]);
-
-                if (job.getMinCgpa() < min || job.getMinCgpa() >= max)
-                    match = false;
+                if (job.getMinCgpa() < min || job.getMinCgpa() >= max)               match = false;
             }
 
-            if (match)
-                filteredJobs.add(job);
+            if (match) filteredJobs.add(job);
         }
 
         currentPage = 1;
@@ -268,59 +232,39 @@ public class RecruitmentFrame extends BaseFrame {
     // ================= UPDATE TABLE =================
     private void updateTable() {
 
-    model.setRowCount(0);
+        model.setRowCount(0);
 
-    // If no records
-    if (filteredJobs == null || filteredJobs.isEmpty()) {
+        if (filteredJobs == null || filteredJobs.isEmpty()) {
+            currentPage = 1; totalPages = 1;
+            pageLabel.setText("No records found");
+            btnPrevious.setEnabled(false);
+            btnNext.setEnabled(false);
+            return;
+        }
 
-        currentPage = 1;
-        totalPages = 1;
+        totalPages = (int) Math.ceil((double) filteredJobs.size() / rowsPerPage);
+        if (totalPages <= 0) totalPages = 1;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
 
-        pageLabel.setText("No records found");
-        btnPrevious.setEnabled(false);
-        btnNext.setEnabled(false);
-        return;
+        int start = (currentPage - 1) * rowsPerPage;
+        int end   = Math.min(start + rowsPerPage, filteredJobs.size());
+
+        for (int i = start; i < end; i++) {
+            Job job = filteredJobs.get(i);
+            model.addRow(new Object[]{job.getCompany(), job.getJobTitle(), job.getMinCgpa(), "View Detail"});
+        }
+
+        pageLabel.setText("Page " + currentPage + " of " + totalPages);
+        btnPrevious.setEnabled(currentPage > 1);
+        btnNext    .setEnabled(currentPage < totalPages);
     }
-
-    // Calculate total pages properly
-    totalPages = (int) Math.ceil((double) filteredJobs.size() / rowsPerPage);
-
-    // Safety guards
-    if (totalPages <= 0)
-        totalPages = 1;
-
-    if (currentPage < 1)
-        currentPage = 1;
-
-    if (currentPage > totalPages)
-        currentPage = totalPages;
-
-    int start = (currentPage - 1) * rowsPerPage;
-    int end = Math.min(start + rowsPerPage, filteredJobs.size());
-
-    for (int i = start; i < end; i++) {
-
-        Job job = filteredJobs.get(i);
-
-        model.addRow(new Object[]{
-                job.getCompany(),
-                job.getJobTitle(),
-                job.getMinCgpa(),
-                "View Detail"
-        });
-    }
-
-    pageLabel.setText("Page " + currentPage + " of " + totalPages);
-
-    btnPrevious.setEnabled(currentPage > 1);
-    btnNext.setEnabled(currentPage < totalPages);
-}
 
     // ================= RESET FILTERS =================
     private void resetFilters() {
         companyFilter.setSelectedIndex(0);
-        jobFilter.setSelectedIndex(0);
-        cgpaFilter.setSelectedIndex(0);
+        jobFilter    .setSelectedIndex(0);
+        cgpaFilter   .setSelectedIndex(0);
         applyFilters();
     }
 }
