@@ -1,16 +1,18 @@
 package gui.base;
 
+import service.AuthService;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public abstract class BaseFrame extends JFrame {
 
-    // Theme
-    public static final Color COLOR_PRIMARY = new Color(52, 102, 160);
-    public static final Color COLOR_SIDEBAR_BG = new Color(235, 242, 250);
+    // Theme colours
+    public static final Color COLOR_PRIMARY      = new Color(52, 102, 160);
+    public static final Color COLOR_SIDEBAR_BG   = new Color(235, 242, 250);
     public static final Color COLOR_SIDEBAR_ACTIVE = new Color(66, 133, 244);
-    public static final Color COLOR_TEXT_DARK = new Color(30, 30, 30);
+    public static final Color COLOR_TEXT_DARK    = new Color(30, 30, 30);
 
     protected HeaderPanel header;
     protected SidebarPanel sidebar;
@@ -24,15 +26,12 @@ public abstract class BaseFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Header
         header = new HeaderPanel("Placement & Job Recruitment System");
         add(header, BorderLayout.NORTH);
 
-        // Sidebar
         sidebar = new SidebarPanel(activeItem);
         add(sidebar, BorderLayout.WEST);
 
-        // Content wrapper
         contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBorder(new EmptyBorder(18, 18, 18, 18));
         contentWrapper.setBackground(Color.WHITE);
@@ -75,7 +74,7 @@ public abstract class BaseFrame extends JFrame {
 
                 case POLICY:
                     nextFrame = new gui.student.StudentPolicyFrame();
-                    return;
+                    break;
 
                 case LOGOUT:
                     int confirm = JOptionPane.showConfirmDialog(
@@ -84,18 +83,17 @@ public abstract class BaseFrame extends JFrame {
                             "Confirm Logout",
                             JOptionPane.YES_NO_OPTION
                     );
-
                     if (confirm == JOptionPane.YES_OPTION) {
-                        // ✅ Go back to LoginFrame
+                        AuthService.logout();          // clears Session
                         new gui.auth.LoginFrame().setVisible(true);
-                        this.dispose();
+                        dispose();
                     }
                     return;
             }
 
             if (nextFrame != null) {
                 nextFrame.setVisible(true);
-                this.dispose();
+                dispose();
             }
         });
     }
