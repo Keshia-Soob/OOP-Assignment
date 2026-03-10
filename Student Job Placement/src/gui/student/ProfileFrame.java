@@ -2,18 +2,14 @@ package gui.student;
 
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
-import model.Application;
-import model.User;
-import service.ApplicationService;
-import service.ProfileService;
-import util.Session;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.List;
+import model.User;
+import service.ProfileService;
+import util.Session;
 
 /**
  * Profile Page — displays user information, applied jobs,
@@ -40,9 +36,6 @@ public class ProfileFrame extends BaseFrame {
     private JPasswordField fCurrentPw, fNewPw, fConfirmPw;
     private JLabel         pwFeedback;
 
-    // ── Applications table ───────────────────────────────────────────────────
-    private DefaultTableModel appsModel;
-
     public ProfileFrame() {
         super("Profile", SidebarPanel.NavItem.PROFILE);
     }
@@ -65,7 +58,7 @@ public class ProfileFrame extends BaseFrame {
         root.add(vGap(16));
         root.add(buildPasswordCard());
         root.add(vGap(16));
-        root.add(buildApplicationsCard());
+        root.add(buildOffersCard());
         root.add(vGap(10));
 
         JScrollPane scroll = new JScrollPane(root);
@@ -189,19 +182,32 @@ public class ProfileFrame extends BaseFrame {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  SECTION 3 — Applied Jobs Card
+    //  SECTION 3 — Company Offers
     // ════════════════════════════════════════════════════════════════════════
-    private JComponent buildApplicationsCard() {
+    private JComponent buildOffersCard() {
 
-        JPanel card = card("Jobs Applied For");
+        JPanel card = card("Job Offers from Companies");
 
-        appsModel = new DefaultTableModel(
-                new Object[]{"#", "Company", "Job Title", "Date Applied", "Status"}, 0) {
+        // Static offer data: Company, Role, Location, Salary (MUR)
+        Object[][] offers = {
+            { "Accenture",     "Backend Developer",       "Ebene" },
+            { "MCB",           "IT Security Officer",     "Port Louis" },
+            { "KPMG",          "IT Auditor",              "Ebene" },
+            { "EY",            "Cybersecurity Analyst",   "Ebene" },
+            { "PwC",           "Business Analyst",        "Ebene" },
+        };
+
+        DefaultTableModel offersModel = new DefaultTableModel(
+                new Object[]{ "Company", "Role", "Location" }, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        JTable table = new JTable(appsModel);
-        table.setRowHeight(30);
+        for (Object[] row : offers) {
+            offersModel.addRow(row);
+        }
+
+        JTable table = new JTable(offersModel);
+        table.setRowHeight(28);
         table.setFont(new Font("SansSerif", Font.PLAIN, 13));
         table.setGridColor(new Color(230, 235, 245));
         table.setShowGrid(true);
@@ -210,38 +216,15 @@ public class ProfileFrame extends BaseFrame {
         table.getTableHeader().setForeground(new Color(40, 40, 40));
         table.setSelectionBackground(new Color(210, 225, 245));
 
-        // ---- Status column colour renderer ----
-        table.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object value,
-                    boolean sel, boolean focus, int row, int col) {
-                super.getTableCellRendererComponent(t, value, sel, focus, row, col);
-                setHorizontalAlignment(CENTER);
-                String status = value != null ? value.toString() : "";
-                switch (status) {
-                    case "Selected"    -> { setForeground(new Color(0, 128, 0)); setFont(getFont().deriveFont(Font.BOLD)); }
-                    case "Shortlisted" -> { setForeground(new Color(200, 120, 0)); setFont(getFont().deriveFont(Font.BOLD)); }
-                    case "Rejected"    -> { setForeground(RED_ERR); setFont(getFont().deriveFont(Font.BOLD)); }
-                    default            -> { setForeground(ACCENT); setFont(getFont().deriveFont(Font.PLAIN)); }
-                }
-                return this;
-            }
-        });
-
-        // Centre "#" column
-        table.getColumnModel().getColumn(0).setCellRenderer(centreRenderer());
-        table.getColumnModel().getColumn(0).setMaxWidth(40);
-        table.getColumnModel().getColumn(3).setCellRenderer(centreRenderer());
-
         JScrollPane sp = new JScrollPane(table);
-        sp.setPreferredSize(new Dimension(0, 200));
-        sp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
         sp.setBorder(new LineBorder(BORDER_CLR, 1, true));
         sp.setAlignmentX(LEFT_ALIGNMENT);
 
-        card.add(sp);
+        // Let table decide height automatically
+        table.setPreferredScrollableViewportSize(table.getPreferredSize());
+        table.setFillsViewportHeight(false);
 
-        loadApplications();
+        card.add(sp);
         return card;
     }
 
@@ -282,20 +265,6 @@ public class ProfileFrame extends BaseFrame {
             fConfirmPw.setText("");
         } else {
             showFeedback(pwFeedback, "✘  " + error, false);
-        }
-    }
-
-    private void loadApplications() {
-        appsModel.setRowCount(0);
-        List<Application> apps = ApplicationService.getApplications(Session.getUserId());
-        int i = 1;
-        for (Application app : apps) {
-            String date = (app.getDateApplied() != null)
-                    ? app.getDateApplied().toString().substring(0, 10) : "-";
-            appsModel.addRow(new Object[]{i++, app.getCompany(), app.getJobTitle(), date, app.getStatus()});
-        }
-        if (apps.isEmpty()) {
-            appsModel.addRow(new Object[]{"", "No applications yet.", "", "", ""});
         }
     }
 
