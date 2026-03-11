@@ -181,10 +181,25 @@ public class RecruitmentFrame extends BaseFrame {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Apply — handles all result codes from ApplicationService
+    //  Apply — checks CGPA eligibility first, then handles all result codes
     // ─────────────────────────────────────────────────────────────────────────
 
     private void handleApply(Job job) {
+
+        // ---- CGPA CHECK ----
+        double studentCgpa  = Session.getCurrentUser().getCgpa();
+        double requiredCgpa = job.getMinCgpa();
+
+        if (studentCgpa < requiredCgpa) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "You are not eligible for this position due to low CGPA.\n\n" +
+                    "Required CGPA : " + requiredCgpa + "\n" +
+                    "Your CGPA     : " + studentCgpa,
+                    "Not Eligible",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         int userId = Session.getUserId();
         int result = ApplicationService.apply(userId, job.getJobId());
@@ -229,7 +244,7 @@ public class RecruitmentFrame extends BaseFrame {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Filters / pagination (unchanged logic from original)
+    //  Filters / pagination
     // ─────────────────────────────────────────────────────────────────────────
 
     private void populateFilters() {
