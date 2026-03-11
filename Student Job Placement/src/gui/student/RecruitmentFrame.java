@@ -24,7 +24,7 @@ public class RecruitmentFrame extends BaseFrame {
     private JComboBox<String> jobFilter;
     private JComboBox<String> cgpaFilter;
 
-    private JLabel pageLabel;
+    private JLabel  pageLabel;
     private JButton btnPrevious;
     private JButton btnNext;
 
@@ -46,7 +46,7 @@ public class RecruitmentFrame extends BaseFrame {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // ================= TITLE =================
+        // ── Title ─────────────────────────────────────────────────────────────
         JLabel titleLabel = new JLabel("Recruitments");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
 
@@ -54,7 +54,29 @@ public class RecruitmentFrame extends BaseFrame {
         topPanel.setBackground(Color.WHITE);
         topPanel.add(titleLabel, BorderLayout.NORTH);
 
-        // ================= FILTER PANEL =================
+        // ── One-offer banner (shown only when the student is already Selected) ─
+        if (ApplicationService.countByStatus(Session.getUserId(), "Selected") > 0) {
+            JPanel banner = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+            banner.setBackground(new Color(255, 243, 205));
+            banner.setBorder(BorderFactory.createLineBorder(
+                    new Color(230, 180, 30), 1, true));
+
+            JLabel icon = new JLabel("⚠");
+            icon.setFont(new Font("SansSerif", Font.BOLD, 14));
+            icon.setForeground(new Color(160, 100, 0));
+
+            JLabel msg = new JLabel(
+                    "You have already been selected for a position. " +
+                    "You cannot apply to further jobs.");
+            msg.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            msg.setForeground(new Color(100, 60, 0));
+
+            banner.add(icon);
+            banner.add(msg);
+            topPanel.add(banner, BorderLayout.SOUTH);
+        }
+
+        // ── Filters ───────────────────────────────────────────────────────────
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         filterPanel.setBackground(Color.WHITE);
 
@@ -76,18 +98,16 @@ public class RecruitmentFrame extends BaseFrame {
         topPanel.add(filterPanel, BorderLayout.CENTER);
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // ================= LOAD DATA =================
+        // ── Load data ─────────────────────────────────────────────────────────
         allJobs      = JobDAO.getAllJobs();
         filteredJobs = new ArrayList<>(allJobs);
-
         populateFilters();
 
-        // ================= TABLE =================
-        String[] columns = {"Company", "Job Title", "Minimum CGPA", "Application"};
-
-        model = new DefaultTableModel(columns, 0) {
+        // ── Table ─────────────────────────────────────────────────────────────
+        model = new DefaultTableModel(
+                new String[]{"Company", "Job Title", "Minimum CGPA", "Application"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int row, int col) { return false; }
         };
 
         table = new JTable(model);
@@ -95,7 +115,7 @@ public class RecruitmentFrame extends BaseFrame {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        // ================= CLICK HANDLER =================
+        // ── Click handler ─────────────────────────────────────────────────────
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -104,10 +124,10 @@ public class RecruitmentFrame extends BaseFrame {
                 int col = table.columnAtPoint(e.getPoint());
                 if (row == -1 || col != 3) return;
 
-                int actualIndex = (currentPage - 1) * rowsPerPage + row;
-                if (actualIndex < 0 || actualIndex >= filteredJobs.size()) return;
+                int idx = (currentPage - 1) * rowsPerPage + row;
+                if (idx < 0 || idx >= filteredJobs.size()) return;
 
-                Job job = filteredJobs.get(actualIndex);
+                Job job = filteredJobs.get(idx);
 
                 String details =
                         "Key Responsibilities:\n" + job.getKeyResponsibilities() + "\n\n" +
@@ -118,7 +138,7 @@ public class RecruitmentFrame extends BaseFrame {
                         "Contact Number:\n"       + job.getContactNumber()       + "\n\n" +
                         "Starting Date:\n"        + job.getStartDate();
 
-                int result = JOptionPane.showOptionDialog(
+                int choice = JOptionPane.showOptionDialog(
                         RecruitmentFrame.this,
                         details,
                         job.getCompany() + " - " + job.getJobTitle(),
@@ -129,43 +149,7 @@ public class RecruitmentFrame extends BaseFrame {
                         "Apply"
                 );
 
-                if (result == 0) {
-                    // ---- CGPA CHECK ----
-                    double studentCgpa  = Session.getCurrentUser().getCgpa();
-                    double requiredCgpa = job.getMinCgpa();
-
-                    if (studentCgpa < requiredCgpa) {
-                        JOptionPane.showMessageDialog(
-                                RecruitmentFrame.this,
-                                "You are not eligible for this position due to low CGPA.\n\n" +
-                                "Required CGPA : " + requiredCgpa + "\n" +
-                                "Your CGPA     : " + studentCgpa,
-                                "Not Eligible",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return;
-                    }
-
-                    // ---- APPLY: save to DB via ApplicationService ----
-                    int userId  = Session.getUserId();
-                    boolean ok  = ApplicationService.apply(userId, job.getJobId());
-
-                    if (ok) {
-                        JOptionPane.showMessageDialog(
-                                RecruitmentFrame.this,
-                                "Application submitted successfully!\nYou can view it in the Applications section.",
-                                "Applied",
-                                JOptionPane.INFORMATION_MESSAGE
-                        );
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                RecruitmentFrame.this,
-                                "You have already applied for this position.",
-                                "Already Applied",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                    }
-                }
+                if (choice == 0) handleApply(job);
             }
         });
 
@@ -173,10 +157,10 @@ public class RecruitmentFrame extends BaseFrame {
         tablePanel.setBackground(Color.WHITE);
         table.setPreferredScrollableViewportSize(new Dimension(800, 300));
         tablePanel.add(table.getTableHeader(), BorderLayout.NORTH);
-        tablePanel.add(table, BorderLayout.CENTER);
+        tablePanel.add(table,                  BorderLayout.CENTER);
         mainPanel.add(tablePanel, BorderLayout.CENTER);
 
-        // ================= PAGINATION =================
+        // ── Pagination ────────────────────────────────────────────────────────
         JPanel paginationPanel = new JPanel();
         paginationPanel.setBackground(Color.WHITE);
 
@@ -189,21 +173,72 @@ public class RecruitmentFrame extends BaseFrame {
         paginationPanel.add(btnNext);
         mainPanel.add(paginationPanel, BorderLayout.SOUTH);
 
-        btnPrevious.addActionListener(e -> { if (currentPage > 1)          { currentPage--; updateTable(); } });
-        btnNext    .addActionListener(e -> { if (currentPage < totalPages)  { currentPage++; updateTable(); } });
+        btnPrevious.addActionListener(e -> { if (currentPage > 1)         { currentPage--; updateTable(); } });
+        btnNext    .addActionListener(e -> { if (currentPage < totalPages) { currentPage++; updateTable(); } });
 
         updateTable();
         return mainPanel;
     }
 
-    // ================= POPULATE FILTERS =================
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Apply — handles all result codes from ApplicationService
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private void handleApply(Job job) {
+
+        int userId = Session.getUserId();
+        int result = ApplicationService.apply(userId, job.getJobId());
+
+        switch (result) {
+
+            case ApplicationService.APPLY_SUCCESS:
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Application submitted successfully!\n" +
+                        "You can view it in the Applications section.",
+                        "Applied",
+                        JOptionPane.INFORMATION_MESSAGE);
+                break;
+
+            case ApplicationService.APPLY_ALREADY_APPLIED:
+                JOptionPane.showMessageDialog(
+                        this,
+                        "You have already applied for this position.",
+                        "Already Applied",
+                        JOptionPane.WARNING_MESSAGE);
+                break;
+
+            case ApplicationService.APPLY_ALREADY_SELECTED:
+                JOptionPane.showMessageDialog(
+                        this,
+                        "You have already been selected for a placement.\n\n" +
+                        "The system allows only one active placement per student\n" +
+                        "so that other students have a fair chance.",
+                        "Application Not Allowed",
+                        JOptionPane.WARNING_MESSAGE);
+                break;
+
+            default:
+                JOptionPane.showMessageDialog(
+                        this,
+                        "An error occurred while submitting your application.\n" +
+                        "Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Filters / pagination (unchanged logic from original)
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void populateFilters() {
 
         companyFilter.addItem("All");
-        jobFilter.addItem("All");
+        jobFilter    .addItem("All");
+        cgpaFilter   .addItem("All");
 
-        cgpaFilter.addItem("All");
-        for (String r : new String[]{"0-1","1-2","2-3","3-4","4-5"})
+        for (String r : new String[]{"0-1", "1-2", "2-3", "3-4", "4-5"})
             cgpaFilter.addItem(r);
 
         Set<String> companies = new LinkedHashSet<>();
@@ -217,25 +252,24 @@ public class RecruitmentFrame extends BaseFrame {
         cgpaFilter   .addActionListener(e -> applyFilters());
     }
 
-    // ================= APPLY FILTERS =================
     private void applyFilters() {
 
         String selCompany = companyFilter.getSelectedItem().toString();
-        String selJob     = jobFilter.getSelectedItem().toString();
-        String selCgpa    = cgpaFilter.getSelectedItem().toString();
+        String selJob     = jobFilter    .getSelectedItem().toString();
+        String selCgpa    = cgpaFilter   .getSelectedItem().toString();
 
         filteredJobs.clear();
 
         for (Job job : allJobs) {
             boolean match = true;
 
-            if (!selCompany.equals("All") && !job.getCompany().equals(selCompany))   match = false;
-            if (!selJob    .equals("All") && !job.getJobTitle().equals(selJob))      match = false;
+            if (!selCompany.equals("All") && !job.getCompany() .equals(selCompany)) match = false;
+            if (!selJob    .equals("All") && !job.getJobTitle().equals(selJob))     match = false;
             if (!selCgpa   .equals("All")) {
                 String[] range = selCgpa.split("-");
                 double min = Double.parseDouble(range[0]);
                 double max = Double.parseDouble(range[1]);
-                if (job.getMinCgpa() < min || job.getMinCgpa() >= max)               match = false;
+                if (job.getMinCgpa() < min || job.getMinCgpa() >= max)             match = false;
             }
 
             if (match) filteredJobs.add(job);
@@ -245,7 +279,6 @@ public class RecruitmentFrame extends BaseFrame {
         updateTable();
     }
 
-    // ================= UPDATE TABLE =================
     private void updateTable() {
 
         model.setRowCount(0);
@@ -254,7 +287,7 @@ public class RecruitmentFrame extends BaseFrame {
             currentPage = 1; totalPages = 1;
             pageLabel.setText("No records found");
             btnPrevious.setEnabled(false);
-            btnNext.setEnabled(false);
+            btnNext    .setEnabled(false);
             return;
         }
 
@@ -268,7 +301,9 @@ public class RecruitmentFrame extends BaseFrame {
 
         for (int i = start; i < end; i++) {
             Job job = filteredJobs.get(i);
-            model.addRow(new Object[]{job.getCompany(), job.getJobTitle(), job.getMinCgpa(), "View Detail"});
+            model.addRow(new Object[]{
+                    job.getCompany(), job.getJobTitle(), job.getMinCgpa(), "View Detail"
+            });
         }
 
         pageLabel.setText("Page " + currentPage + " of " + totalPages);
@@ -276,7 +311,6 @@ public class RecruitmentFrame extends BaseFrame {
         btnNext    .setEnabled(currentPage < totalPages);
     }
 
-    // ================= RESET FILTERS =================
     private void resetFilters() {
         companyFilter.setSelectedIndex(0);
         jobFilter    .setSelectedIndex(0);
