@@ -130,6 +130,22 @@ public class RecruitmentFrame extends BaseFrame {
                 );
 
                 if (result == 0) {
+                    // ---- CGPA CHECK ----
+                    double studentCgpa  = Session.getCurrentUser().getCgpa();
+                    double requiredCgpa = job.getMinCgpa();
+
+                    if (studentCgpa < requiredCgpa) {
+                        JOptionPane.showMessageDialog(
+                                RecruitmentFrame.this,
+                                "You are not eligible for this position due to low CGPA.\n\n" +
+                                "Required CGPA : " + requiredCgpa + "\n" +
+                                "Your CGPA     : " + studentCgpa,
+                                "Not Eligible",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                    }
+
                     // ---- APPLY: save to DB via ApplicationService ----
                     int userId  = Session.getUserId();
                     boolean ok  = ApplicationService.apply(userId, job.getJobId());
