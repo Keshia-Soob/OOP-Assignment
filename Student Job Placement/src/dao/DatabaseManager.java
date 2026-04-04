@@ -14,6 +14,7 @@ public class DatabaseManager {
         createApplicationsTable();
         createOffCampusApplicationsTable(); // optional but matches your UI button
         // insertDummyJobs(); // optional but helps testing
+        createJobOffersTable();
     }
 
     private static void createUsersTable() {
@@ -117,9 +118,31 @@ public class DatabaseManager {
         execute(sql, "off_campus_applications");
     }
 
+    private static void createJobOffersTable() {
+
+        String sql = """
+        CREATE TABLE IF NOT EXISTS job_offers (
+            offer_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            job_id INT NOT NULL,
+            status VARCHAR(30) DEFAULT 'Pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            CONSTRAINT fk_offer_user FOREIGN KEY (user_id)
+                REFERENCES users(user_id)
+                ON DELETE CASCADE,
+
+            CONSTRAINT fk_offer_job FOREIGN KEY (job_id)
+                REFERENCES jobs(job_id)
+                ON DELETE CASCADE
+        );
+    """;
+
+        execute(sql, "job_offers");
+    }
+
     private static void execute(String sql, String tableName) {
-        try (Connection con = DB.getConnection();
-             Statement st = con.createStatement()) {
+        try (Connection con = DB.getConnection(); Statement st = con.createStatement()) {
 
             st.execute(sql);
             System.out.println("Table ready: " + tableName);

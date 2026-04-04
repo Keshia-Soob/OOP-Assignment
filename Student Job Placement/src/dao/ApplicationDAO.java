@@ -1,12 +1,11 @@
 package dao;
 
 import gui.auth.DB;
-import model.Application;
-import model.ApplicationHistory;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import model.Application;
+import model.ApplicationHistory;
 
 public class ApplicationDAO {
 
@@ -327,5 +326,47 @@ public class ApplicationDAO {
         }
 
         return items;
+    }
+
+        /**
+     * Find application_id for a given user and job.
+     */
+    public static int findApplicationId(int userId, int jobId) {
+        String sql = """
+            SELECT application_id
+            FROM applications
+            WHERE user_id = ? AND job_id = ?
+            LIMIT 1
+        """;
+
+        try (Connection con = DB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, jobId);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("application_id");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    /**
+     * Mark one application as Selected and log history.
+     */
+    public static boolean markAsSelected(int applicationId) {
+        if (applicationId <= 0) return false;
+
+        boolean updated = updateStatus(applicationId, "Selected");
+        if (updated) {
+            insertHistory(applicationId, "Selected");
+        }
+        return updated;
     }
 }

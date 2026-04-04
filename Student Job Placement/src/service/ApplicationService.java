@@ -1,10 +1,10 @@
 package service;
 
 import dao.ApplicationDAO;
+import dao.JobOfferDAO;
+import java.util.List;
 import model.Application;
 import model.ApplicationHistory;
-
-import java.util.List;
 
 public class ApplicationService {
 
@@ -26,6 +26,9 @@ public class ApplicationService {
 
         // ── One-offer rule: check BOTH on-campus and off-campus tables ───────
         if (service.OffCampusService.isAlreadySelected(userId)) {
+            return APPLY_ALREADY_SELECTED;
+        }
+        if (JobOfferDAO.hasAcceptedOffer(userId)) {
             return APPLY_ALREADY_SELECTED;
         }
 
