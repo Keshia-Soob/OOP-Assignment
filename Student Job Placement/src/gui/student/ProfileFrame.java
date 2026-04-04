@@ -1,52 +1,55 @@
 package gui.student;
 
+import dao.JobOfferDAO;
 import gui.base.BaseFrame;
 import gui.base.SidebarPanel;
 import java.awt.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import model.Job;
 import model.User;
 import service.ProfileService;
 import util.Session;
 
 /**
- * Profile Page — displays user information, applied jobs,
- * and provides inline edit + password-change functionality.
+ * Profile Page — displays user information, applied jobs, and provides inline
+ * edit + password-change functionality.
  */
 public class ProfileFrame extends BaseFrame {
 
-    // ── Theme (reuses BaseFrame constants) ──────────────────────────────────
-    private static final Color BG          = Color.WHITE;
-    private static final Color ACCENT      = new Color(52, 102, 160);   // same as COLOR_PRIMARY
-    private static final Color LIGHT_BG    = new Color(245, 248, 252);
-    private static final Color BORDER_CLR  = new Color(210, 220, 235);
-    private static final Color LABEL_CLR   = new Color(80, 90, 110);
-    private static final Color GREEN_OK    = new Color(34, 139, 34);
-    private static final Color RED_ERR     = new Color(180, 0, 0);
+    // ── Theme ────────────────────────────────────────────────────────────────
+    private static final Color BG = Color.WHITE;
+    private static final Color ACCENT = new Color(52, 102, 160);
+    private static final Color BORDER_CLR = new Color(210, 220, 235);
+    private static final Color LABEL_CLR = new Color(80, 90, 110);
+    private static final Color GREEN_OK = new Color(34, 139, 34);
+    private static final Color RED_ERR = new Color(180, 0, 0);
 
     // ── Profile-info edit fields ─────────────────────────────────────────────
-    private JTextField  fFullName, fAddress, fContact, fCgpa, fAge;
-    private JTextField  fStudentId, fEmail;   // read-only (disabled)
+    private JTextField fFullName, fAddress, fContact, fCgpa, fAge;
+    private JTextField fStudentId, fEmail;
     private JComboBox<String> cbCourse, cbFaculty, cbLevel;
-    private JLabel      profileFeedback;
+    private JLabel profileFeedback;
 
     // ── Password-change fields ───────────────────────────────────────────────
     private JPasswordField fCurrentPw, fNewPw, fConfirmPw;
-    private JLabel         pwFeedback;
+    private JLabel pwFeedback;
+
+    // ── Offers table ─────────────────────────────────────────────────────────
+    private JTable offersTable;
+    private DefaultTableModel offersTableModel;
 
     public ProfileFrame() {
         super("Profile", SidebarPanel.NavItem.PROFILE);
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  buildContent — called by BaseFrame constructor
-    // ════════════════════════════════════════════════════════════════════════
     @Override
     protected JComponent buildContent() {
 
-        // Master vertical scroll pane
         JPanel root = new JPanel();
         root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
         root.setBackground(BG);
@@ -68,7 +71,7 @@ public class ProfileFrame extends BaseFrame {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  Page title
+    // Page title
     // ════════════════════════════════════════════════════════════════════════
     private JComponent buildPageTitle() {
         JLabel lbl = new JLabel("My Profile");
@@ -79,7 +82,7 @@ public class ProfileFrame extends BaseFrame {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  SECTION 1 — Profile Info Card
+    // SECTION 1 — Profile Info Card
     // ════════════════════════════════════════════════════════════════════════
     private JComponent buildProfileCard() {
 
@@ -87,61 +90,57 @@ public class ProfileFrame extends BaseFrame {
 
         JPanel card = card("Profile Information");
 
-        // ---- All fields (Student ID and Email are read-only) ----
         fStudentId = tfReadOnly(u != null ? u.getStudentId() : "");
-        fEmail     = tfReadOnly(u != null ? u.getEmail()     : "");
-        fFullName  = tf(u != null ? u.getFullName()          : "");
-        fContact   = tf(u != null ? u.getContactNumber()     : "");
-        fAddress   = tf(u != null ? u.getAddress()           : "");
-        fCgpa      = tf(u != null ? String.valueOf(u.getCgpa()) : "");
-        fAge       = tf(u != null ? String.valueOf(u.getAge())  : "");
+        fEmail = tfReadOnly(u != null ? u.getEmail() : "");
+        fFullName = tf(u != null ? u.getFullName() : "");
+        fContact = tf(u != null ? u.getContactNumber() : "");
+        fAddress = tf(u != null ? u.getAddress() : "");
+        fCgpa = tf(u != null ? String.valueOf(u.getCgpa()) : "");
+        fAge = tf(u != null ? String.valueOf(u.getAge()) : "");
 
         cbCourse = combo(new String[]{
-                "Computer Science","Applied Computing","Cybersecurity",
-                "Software Engineering","Business & Management","Law & Management"
+            "Computer Science", "Applied Computing", "Cybersecurity",
+            "Software Engineering", "Business & Management", "Law & Management"
         }, u != null ? u.getCourse() : null);
 
-        cbFaculty = combo(new String[]{"FOICDT","FLM","FSSH","FoE","FoA"},
+        cbFaculty = combo(new String[]{"FOICDT", "FLM", "FSSH", "FoE", "FoA"},
                 u != null ? u.getFaculty() : null);
 
-        cbLevel = combo(new String[]{"Level 1","Level 2","Level 3","Level 4","Masters"},
+        cbLevel = combo(new String[]{"Level 1", "Level 2", "Level 3", "Level 4", "Masters"},
                 u != null ? u.getLevel() : null);
 
         JPanel grid = new JPanel(new GridLayout(0, 2, 16, 10));
         grid.setOpaque(false);
         grid.setAlignmentX(LEFT_ALIGNMENT);
 
-        addFieldPair(grid, "Student ID",         fStudentId);
-        addFieldPair(grid, "Email",              fEmail);
-        addFieldPair(grid, "Full Name *",        fFullName);
-        addFieldPair(grid, "Contact Number",     fContact);
-        addFieldPair(grid, "Address",            fAddress);
-        addFieldPair(grid, "Course",             cbCourse);
-        addFieldPair(grid, "Faculty",            cbFaculty);
-        addFieldPair(grid, "CGPA *",             fCgpa);
-        addFieldPair(grid, "Level",              cbLevel);
-        addFieldPair(grid, "Age *",              fAge);
+        addFieldPair(grid, "Student ID", fStudentId);
+        addFieldPair(grid, "Email", fEmail);
+        addFieldPair(grid, "Full Name *", fFullName);
+        addFieldPair(grid, "Contact Number", fContact);
+        addFieldPair(grid, "Address", fAddress);
+        addFieldPair(grid, "Course", cbCourse);
+        addFieldPair(grid, "Faculty", cbFaculty);
+        addFieldPair(grid, "CGPA *", fCgpa);
+        addFieldPair(grid, "Level", cbLevel);
+        addFieldPair(grid, "Age *", fAge);
 
         grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height + 20));
         card.add(grid);
         card.add(vGap(14));
 
-        // ---- Feedback label ----
         profileFeedback = feedbackLabel();
         card.add(profileFeedback);
         card.add(vGap(8));
 
-        // ---- Save button ----
         JButton saveBtn = primaryButton("Save Changes");
         saveBtn.addActionListener(e -> handleSaveProfile());
-        JPanel btnRow = leftAligned(saveBtn);
-        card.add(btnRow);
+        card.add(leftAligned(saveBtn));
 
         return card;
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  SECTION 2 — Change Password Card
+    // SECTION 2 — Change Password Card
     // ════════════════════════════════════════════════════════════════════════
     private JComponent buildPasswordCard() {
 
@@ -152,11 +151,11 @@ public class ProfileFrame extends BaseFrame {
         grid.setAlignmentX(LEFT_ALIGNMENT);
 
         fCurrentPw = pwField();
-        fNewPw     = pwField();
+        fNewPw = pwField();
         fConfirmPw = pwField();
 
-        addFieldPair(grid, "Current Password",  fCurrentPw);
-        addFieldPair(grid, "New Password",       fNewPw);
+        addFieldPair(grid, "Current Password", fCurrentPw);
+        addFieldPair(grid, "New Password", fNewPw);
         addFieldPair(grid, "Confirm New Password", fConfirmPw);
 
         grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height + 20));
@@ -182,56 +181,97 @@ public class ProfileFrame extends BaseFrame {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  SECTION 3 — Company Offers
+    // SECTION 3 — Job Offers
     // ════════════════════════════════════════════════════════════════════════
     private JComponent buildOffersCard() {
 
         JPanel card = card("Job Offers from Companies");
 
-        // Static offer data: Company, Role, Location, Salary (MUR)
-        Object[][] offers = {
-            { "Accenture",     "Backend Developer",       "Ebene" },
-            { "MCB",           "IT Security Officer",     "Port Louis" },
-            { "KPMG",          "IT Auditor",              "Ebene" },
-            { "EY",            "Cybersecurity Analyst",   "Ebene" },
-            { "PwC",           "Business Analyst",        "Ebene" },
-        };
+        int userId = Session.getUserId();
 
-        DefaultTableModel offersModel = new DefaultTableModel(
-                new Object[]{ "Company", "Role", "Location" }, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+        // THIS LINE MAKES EVERYTHING AUTOMATIC
+        JobOfferDAO.seedOffersForUser(userId, 3);
 
-        for (Object[] row : offers) {
-            offersModel.addRow(row);
+        List<Job> offers = JobOfferDAO.getPendingOffersByUser(userId);
+
+        if (userId <= 0) {
+            JLabel msg = new JLabel("No user session found.");
+            msg.setForeground(RED_ERR);
+            msg.setAlignmentX(LEFT_ALIGNMENT);
+            card.add(msg);
+            return card;
         }
 
-        JTable table = new JTable(offersModel);
-        table.setRowHeight(28);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        table.setGridColor(new Color(230, 235, 245));
-        table.setShowGrid(true);
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
-        table.getTableHeader().setBackground(LIGHT_BG);
-        table.getTableHeader().setForeground(new Color(40, 40, 40));
-        table.setSelectionBackground(new Color(210, 225, 245));
+        if (JobOfferDAO.hasAcceptedOffer(userId)) {
+            JLabel msg = new JLabel("You have already accepted a job offer. You cannot accept another one.");
+            msg.setFont(new Font("SansSerif", Font.BOLD, 13));
+            msg.setForeground(GREEN_OK);
+            msg.setAlignmentX(LEFT_ALIGNMENT);
+            card.add(msg);
+            return card;
+        }
 
-        JScrollPane sp = new JScrollPane(table);
+        if (offers.isEmpty()) {
+            JLabel empty = new JLabel("No pending job offers available.");
+            empty.setFont(new Font("SansSerif", Font.ITALIC, 13));
+            empty.setForeground(LABEL_CLR);
+            empty.setAlignmentX(LEFT_ALIGNMENT);
+            card.add(empty);
+            return card;
+        }
+
+        offersTableModel = new DefaultTableModel(
+                new Object[]{"Job ID", "Company", "Role", "Location", "Actions"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 4;
+            }
+        };
+
+        for (Job job : offers) {
+            offersTableModel.addRow(new Object[]{
+                job.getJobId(),
+                job.getCompany(),
+                job.getJobTitle(),
+                job.getLocation(),
+                "Actions"
+            });
+        }
+
+        offersTable = new JTable(offersTableModel);
+        offersTable.setRowHeight(36);
+        offersTable.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        offersTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+
+        // Hide job ID column
+        offersTable.getColumnModel().getColumn(0).setMinWidth(0);
+        offersTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        offersTable.getColumnModel().getColumn(0).setWidth(0);
+
+        offersTable.getColumnModel().getColumn(1).setPreferredWidth(140);
+        offersTable.getColumnModel().getColumn(2).setPreferredWidth(160);
+        offersTable.getColumnModel().getColumn(3).setPreferredWidth(120);
+        offersTable.getColumnModel().getColumn(4).setPreferredWidth(260);
+
+        offersTable.getColumnModel().getColumn(1).setCellRenderer(centreRenderer());
+        offersTable.getColumnModel().getColumn(2).setCellRenderer(centreRenderer());
+        offersTable.getColumnModel().getColumn(3).setCellRenderer(centreRenderer());
+
+        offersTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
+        offersTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox(), offersTable));
+
+        JScrollPane sp = new JScrollPane(offersTable);
         sp.setBorder(new LineBorder(BORDER_CLR, 1, true));
-        sp.setAlignmentX(LEFT_ALIGNMENT);
-
-        // Let table decide height automatically
-        table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        table.setFillsViewportHeight(false);
+        sp.setPreferredSize(new Dimension(700, 180));
 
         card.add(sp);
+
         return card;
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  Action handlers
+    // Action handlers
     // ════════════════════════════════════════════════════════════════════════
-
     private void handleSaveProfile() {
         String error = ProfileService.updateProfile(
                 fFullName.getText().trim(),
@@ -245,9 +285,9 @@ public class ProfileFrame extends BaseFrame {
         );
 
         if (error == null) {
-            showFeedback(profileFeedback, "✔  Profile updated successfully.", true);
+            showFeedback(profileFeedback, "✔ Profile updated successfully.", true);
         } else {
-            showFeedback(profileFeedback, "✘  " + error, false);
+            showFeedback(profileFeedback, "✘ " + error, false);
         }
     }
 
@@ -259,20 +299,39 @@ public class ProfileFrame extends BaseFrame {
         );
 
         if (error == null) {
-            showFeedback(pwFeedback, "✔  Password updated successfully.", true);
+            showFeedback(pwFeedback, "✔ Password updated successfully.", true);
             fCurrentPw.setText("");
             fNewPw.setText("");
             fConfirmPw.setText("");
         } else {
-            showFeedback(pwFeedback, "✘  " + error, false);
+            showFeedback(pwFeedback, "✘ " + error, false);
         }
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  UI helper factory methods
+    // Helpers for offers
     // ════════════════════════════════════════════════════════════════════════
+    private Job getJobFromRow(int row) {
+        int jobId = Integer.parseInt(offersTableModel.getValueAt(row, 0).toString());
 
-    /** Styled white card panel with a titled section header */
+        List<Job> offers = JobOfferDAO.getPendingOffersByUser(Session.getUserId());
+        for (Job j : offers) {
+            if (j.getJobId() == jobId) {
+                return j;
+            }
+        }
+
+        return null;
+    }
+
+    private void reloadProfileFrame() {
+        dispose();
+        SwingUtilities.invokeLater(() -> new ProfileFrame().setVisible(true));
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // UI helper factory methods
+    // ════════════════════════════════════════════════════════════════════════
     private JPanel card(String title) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -326,7 +385,6 @@ public class ProfileFrame extends BaseFrame {
         return f;
     }
 
-    /** A text field that looks like tf() but cannot be edited. */
     private JTextField tfReadOnly(String val) {
         JTextField f = tf(val);
         f.setEditable(false);
@@ -350,7 +408,9 @@ public class ProfileFrame extends BaseFrame {
         cb.setFont(new Font("SansSerif", Font.PLAIN, 13));
         cb.setBackground(Color.WHITE);
         cb.setBorder(new LineBorder(BORDER_CLR, 1, true));
-        if (selected != null) cb.setSelectedItem(selected);
+        if (selected != null) {
+            cb.setSelectedItem(selected);
+        }
         return cb;
     }
 
@@ -367,8 +427,16 @@ public class ProfileFrame extends BaseFrame {
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             final Color hover = new Color(38, 82, 135);
-            @Override public void mouseEntered(java.awt.event.MouseEvent e) { btn.setBackground(hover); }
-            @Override public void mouseExited (java.awt.event.MouseEvent e) { btn.setBackground(ACCENT); }
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.setBackground(hover);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(ACCENT);
+            }
         });
         return btn;
     }
@@ -402,5 +470,201 @@ public class ProfileFrame extends BaseFrame {
         DefaultTableCellRenderer r = new DefaultTableCellRenderer();
         r.setHorizontalAlignment(SwingConstants.CENTER);
         return r;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // JTable Button Renderer
+    // ════════════════════════════════════════════════════════════════════════
+    class ButtonRenderer extends JPanel implements TableCellRenderer {
+
+        JButton view = new JButton("View");
+        JButton accept = new JButton("Accept");
+        JButton reject = new JButton("Reject");
+
+        public ButtonRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            setOpaque(true);
+            add(view);
+            add(accept);
+            add(reject);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            return this;
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // JTable Button Editor
+    // ════════════════════════════════════════════════════════════════════════
+    class ButtonEditor extends DefaultCellEditor {
+
+        private final JPanel panel = new JPanel();
+        private final JButton view = new JButton("View");
+        private final JButton accept = new JButton("Accept");
+        private final JButton reject = new JButton("Reject");
+        private final JTable table;
+
+        public ButtonEditor(JCheckBox checkBox, JTable table) {
+            super(checkBox);
+            this.table = table;
+
+            panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            panel.add(view);
+            panel.add(accept);
+            panel.add(reject);
+
+            view.addActionListener(e -> {
+                fireEditingStopped();
+                viewOffer();
+            });
+
+            accept.addActionListener(e -> {
+                fireEditingStopped();
+                acceptOffer();
+            });
+
+            reject.addActionListener(e -> {
+                fireEditingStopped();
+                rejectOffer();
+            });
+        }
+
+        private void viewOffer() {
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                return;
+            }
+
+            Job job = getJobFromRow(row);
+            if (job == null) {
+                JOptionPane.showMessageDialog(ProfileFrame.this,
+                        "Unable to load job details.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String details
+                    = "Company: " + job.getCompany() + "\n"
+                    + "Role: " + job.getJobTitle() + "\n"
+                    + "Location: " + job.getLocation() + "\n"
+                    + "Minimum CGPA: " + job.getMinCgpa() + "\n"
+                    + "Salary: " + job.getSalary() + "\n"
+                    + "Duration: " + job.getDuration() + "\n"
+                    + "Start Date: " + job.getStartDate() + "\n"
+                    + "Contact Email: " + job.getContactEmail() + "\n"
+                    + "Contact Number: " + job.getContactNumber() + "\n\n"
+                    + "Description:\n" + job.getDescription() + "\n\n"
+                    + "Key Responsibilities:\n" + job.getKeyResponsibilities();
+
+            JTextArea area = new JTextArea(details, 18, 40);
+            area.setWrapStyleWord(true);
+            area.setLineWrap(true);
+            area.setEditable(false);
+            area.setCaretPosition(0);
+
+            JOptionPane.showMessageDialog(
+                    ProfileFrame.this,
+                    new JScrollPane(area),
+                    "Job Offer Details",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+
+        private void acceptOffer() {
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                return;
+            }
+
+            int userId = Session.getUserId();
+            int jobId = Integer.parseInt(table.getValueAt(row, 0).toString());
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    ProfileFrame.this,
+                    "Accepting this offer will prevent you from proceeding with other job applications.\nDo you want to continue?",
+                    "Confirm Acceptance",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            boolean offerAccepted = JobOfferDAO.acceptOffer(userId, jobId);
+
+            if (!offerAccepted) {
+                JOptionPane.showMessageDialog(ProfileFrame.this,
+                        "Unable to accept this offer.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JobOfferDAO.rejectAllOtherOffers(userId, jobId);
+
+            JOptionPane.showMessageDialog(ProfileFrame.this,
+                    "Offer accepted successfully.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            reloadProfileFrame();
+        }
+
+        private void rejectOffer() {
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                return;
+            }
+
+            int userId = Session.getUserId();
+            int jobId = Integer.parseInt(table.getValueAt(row, 0).toString());
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    ProfileFrame.this,
+                    "Are you sure you want to reject this offer?",
+                    "Confirm Rejection",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            boolean ok = JobOfferDAO.rejectOffer(userId, jobId);
+
+            if (ok) {
+                ((DefaultTableModel) table.getModel()).removeRow(row);
+
+                if (table.getRowCount() == 0) {
+                    reloadProfileFrame();
+                } else {
+                    JOptionPane.showMessageDialog(ProfileFrame.this,
+                            "Offer rejected successfully.",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(ProfileFrame.this,
+                        "Unable to reject this offer.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return panel;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "Actions";
+        }
     }
 }
